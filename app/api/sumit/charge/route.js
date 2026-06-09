@@ -1,27 +1,34 @@
 /**
  * /app/api/sumit/charge/route.js  (Next.js App Router)
  *
- * משתני סביבה נדרשים ב-.env.local:
- *   SUMIT_COMPANY_ID=...
- *   SUMIT_API_KEY=...       ← מפתח API פרטי מסאמיט (לא Public)
+ * מבצע חיוב מול SUMIT באמצעות טוקן חד-פעמי (SingleUseToken) שמגיע מהטופס.
  *
- * גוף הבקשה (JSON):
- *   token       {string}  - og-token שהגיע מהטופס
- *   amount      {number}  - סכום בש"ח
+ * משתני סביבה נדרשים (Vercel / .env.local):
+ *   SUMIT_COMPANY_ID=...     ← מזהה החברה בסאמיט
+ *   SUMIT_API_KEY=...        ← מפתח API פרטי (לא Public!)
+ *
+ * גוף הבקשה (JSON) מהקליינט:
+ *   token       {string}  - og-token / SingleUseToken מהטופס
+ *   amount      {number}  - סכום כולל בש"ח
  *   description {string}  - תיאור העסקה
+ *
+ * פורמט הבקשה תואם ל-Swagger הרשמי:
+ *   POST https://api.sumit.co.il/billing/payments/charge/
+ *   { Credentials:{CompanyID,APIKey}, Items:[{Item:{Name},Quantity,UnitPrice}],
+ *     SingleUseToken, VATIncluded }
  */
 
 import { NextResponse } from 'next/server';
 
-const SUMIT_API_BASE = 'https://api.sumit.co.il';
+const SUMIT_CHARGE_URL = 'https://api.sumit.co.il/billing/payments/charge/';
 
 export async function POST(request) {
   try {
     const { token, amount, description } = await request.json();
 
     // ולידציה בסיסית
-    if (!token)  return NextResponse.json({ error: 'חסר og-token' }, { status: 400 });
-    if (!amount) return NextResponse.json({ error: 'חסר סכום' },    { status: 400 });
+    if (!token)  return NextResponse.json({ error: 'חסר טוקן אשראי' }, { status: 400 });
+    if (!amount) return NextResponse.json({ error: 'חסר סכום' },        { status: 400 });
 
     const companyId = process.env.SUMIT_COMPANY_ID;
     const apiKey    = process.env.SUMIT_API_KEY;
@@ -31,41 +38,68 @@ export async function POST(request) {
       return NextResponse.json({ error: 'תצורת שרת שגויה' }, { status: 500 });
     }
 
+    const itemName = description || 'רכישה באתר נקי בשנייה';
+
     // ─── קריאה ל-Sumit Charge API ───────────────────────────────────────
-    // תיעוד מלא: https://app.sumit.co.il/developers/api/
-    const sumitRes = await fetch(
-      `${SUMIT_API_BASE}/creditcardpayments/charge/?id=${companyId}&key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          SingleUseToken: token,
-          Amount:         Number(amount),
-          Description:    description || 'רכישה באתר',
-          // שדות נוספים אפשריים (הוסף לפי הצורך):
-          // Currency: 'ILS',
-          // CustomerName: '...',
-          // CustomerEmail: '...',
-          // Installments: 1,
-        }),
-      }
-    );
+    const sumitRes = await fetch(SUMIT_CHARGE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Language': 'he',
+      },
+      body: JSON.stringify({
+        Credentials: {
+          CompanyID: Number(companyId),
+          APIKey: apiKey,
+        },
+        Customer: {
+          Name: 'לקוח נקי בשנייה',
+          SearchMode: 0,
+        },
+        Items: [
+          {
+            Item: { Name: itemName },
+            Quantity: 1,
+            UnitPrice: Number(amount),
+          },
+        ],
+        SingleUseToken: token,
+        VATIncluded: true,
+        SendDocumentByEmail: false,
+      }),
+    });
 
-    const sumitData = await sumitRes.json();
+    // התגובה אמורה להיות JSON; אם לא — נחשוף את הטקסט הגולמי לצורך אבחון
+    const raw = await sumitRes.text();
+    let sumitData;
+    try {
+      sumitData = JSON.parse(raw);
+    } catch {
+      console.error('[sumit/charge] non-JSON response:', sumitRes.status, raw.slice(0, 300));
+      return NextResponse.json({ error: 'תגובה לא תקינה משירות הסליקה' }, { status: 502 });
+    }
 
-    // סאמיט מחזיר status: 0 להצלחה
-    if (sumitData?.Status !== 0) {
+    // סאמיט מחזיר Status=0 להצלחה (Success)
+    const ok =
+      sumitData?.Status === 0 ||
+      sumitData?.Status === 'Success' ||
+      String(sumitData?.Status).startsWith('Success');
+
+    if (!ok) {
       const errorMsg =
         sumitData?.UserErrorMessage ||
-        sumitData?.ErrorMessage ||
-        'החיוב נכשל. נסה שנית.';
+        sumitData?.TechnicalErrorDetails ||
+        'החיוב נכשל. אנא בדוק את פרטי הכרטיס ונסה שנית.';
+      console.error('[sumit/charge] declined:', sumitData?.Status, errorMsg);
       return NextResponse.json({ error: errorMsg }, { status: 402 });
     }
 
     // ─── הצלחה ─────────────────────────────────────────────────────────
+    const data = sumitData?.Data || {};
     return NextResponse.json({
-      success:       true,
-      transactionId: sumitData?.ReturnValue || sumitData?.TransactionID,
+      success: true,
+      transactionId: data?.Payment?.ID || data?.DocumentNumber || data?.DocumentID || null,
+      documentUrl: data?.DocumentDownloadURL || null,
     });
 
   } catch (err) {
