@@ -1,2 +1,15 @@
 .claude/
 tools/node_modules/
+
+# Next.js / Node
+node_modules/
+.next/
+out/
+
+# סודות — לעולם לא ל-git
+.env.local
+.env*.local
+
+# קבצים סטטיים שנוצרים אוטומטית בבנייה (מקור האמת: index.html + assets/ בשורש)
+/public/index.html
+/public/assets/

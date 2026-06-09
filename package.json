@@ -1,0 +1,19 @@
+{
+  "name": "naki-beshniya",
+  "version": "1.0.0",
+  "private": true,
+  "description": "נקי בשנייה — landing page + SUMIT checkout (Next.js)",
+  "scripts": {
+    "predev": "node scripts/copy-static.mjs",
+    "dev": "next dev",
+    "prebuild": "node scripts/copy-static.mjs",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  }
+}

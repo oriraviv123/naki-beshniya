@@ -872,7 +872,7 @@ footer ul a:hover{color:var(--yellow)}
     </div>
     <div class="atc-r">
       <span class="atc-price" id="atcPrice">₪237 <s>₪537</s></span>
-      <a href="#offer" class="btn" data-cursor>לסל</a>
+      <a href="/checkout" id="atcGo" class="btn" data-cursor>לסל</a>
     </div>
   </div>
 </div>
@@ -1006,15 +1006,23 @@ footer ul a:hover{color:var(--yellow)}
 
   /* ---------- bundles ---------- */
   var bundles=[].slice.call(document.querySelectorAll('.bundle'));
-  var addCart=document.getElementById('addCart'), atcPrice=document.getElementById('atcPrice'), atcDesc=document.getElementById('atcDesc');
+  var addCart=document.getElementById('addCart'), atcPrice=document.getElementById('atcPrice'), atcDesc=document.getElementById('atcDesc'), atcGo=document.getElementById('atcGo');
+  function syncBundle(b){
+    var price=b.getAttribute('data-price'), old=b.getAttribute('data-old'), qty=b.getAttribute('data-qty'), title=b.querySelector('h3').textContent.trim();
+    var rib=b.querySelector('.ribbon');
+    var desc='חבילת '+title+(rib?' · '+rib.textContent.trim():'');
+    var url='/checkout?qty='+encodeURIComponent(qty)+'&price='+encodeURIComponent(price)+'&old='+encodeURIComponent(old)+'&desc='+encodeURIComponent(desc);
+    addCart.textContent='הוספה לסל · ₪'+price;
+    addCart.setAttribute('href', url);
+    if(atcGo) atcGo.setAttribute('href', url);
+    atcPrice.innerHTML='₪'+price+' <s>₪'+old+'</s>';
+    atcDesc.textContent=desc;
+  }
   bundles.forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault();
     bundles.forEach(function(x){x.classList.remove('active');}); b.classList.add('active');
-    var price=b.getAttribute('data-price'), old=b.getAttribute('data-old'), title=b.querySelector('h3').textContent.trim();
-    var rib=b.querySelector('.ribbon');
-    addCart.textContent='הוספה לסל · ₪'+price;
-    atcPrice.innerHTML='₪'+price+' <s>₪'+old+'</s>';
-    atcDesc.textContent='חבילת '+title+(rib?' · '+rib.textContent.trim():'');
+    syncBundle(b);
   }); });
+  var active0=document.querySelector('.bundle.active')||bundles[0]; if(active0) syncBundle(active0);
 
   /* ---------- FAQ ---------- */
   document.querySelectorAll('.qa').forEach(function(qa){
