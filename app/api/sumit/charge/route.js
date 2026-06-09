@@ -24,11 +24,14 @@ const SUMIT_CHARGE_URL = 'https://api.sumit.co.il/billing/payments/charge/';
 
 export async function POST(request) {
   try {
-    const { token, amount, description } = await request.json();
+    const { token, amount, description, customer } = await request.json();
 
     // ולידציה בסיסית
     if (!token)  return NextResponse.json({ error: 'חסר טוקן אשראי' }, { status: 400 });
     if (!amount) return NextResponse.json({ error: 'חסר סכום' },        { status: 400 });
+
+    const c = customer || {};
+    const customerEmail = (c.email || '').trim();
 
     const companyId = process.env.SUMIT_COMPANY_ID;
     const apiKey    = process.env.SUMIT_API_KEY;
@@ -52,8 +55,14 @@ export async function POST(request) {
           CompanyID: Number(companyId),
           APIKey: apiKey,
         },
+        // פרטי הלקoח — נשמרים בכרטיס הלקוח בסאמיט ומופיעים בחשבונית
         Customer: {
-          Name: 'לקוח נקי בשנייה',
+          Name: (c.fullName || '').trim() || 'לקוח נקי בשנייה',
+          EmailAddress: customerEmail || null,
+          Phone: (c.phone || '').trim() || null,
+          Address: (c.address || '').trim() || null,
+          City: (c.city || '').trim() || null,
+          ZipCode: (c.zip || '').trim() || null,
           SearchMode: 0,
         },
         Items: [
@@ -65,7 +74,9 @@ export async function POST(request) {
         ],
         SingleUseToken: token,
         VATIncluded: true,
-        SendDocumentByEmail: false,
+        // שליחת חשבונית/קבלה במייל ללקוח (אם נמסר אימייל) + עותק לעסק
+        SendDocumentByEmail: Boolean(customerEmail),
+        SendCopyToOrganization: true,
       }),
     });
 

@@ -23,19 +23,31 @@ export default function SumitPaymentForm({ amount, description = '', onSuccess, 
   const [errors, setErrors] = useState([]);
   const [success, setSuccess] = useState(false);
 
+  // פרטי הלקוח (נשמרים בסאמיט ומשמשים לשליחת החשבונית/אישור במייל)
+  const [customer, setCustomer] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    zip: '',
+  });
+  const setField = (k) => (e) =>
+    setCustomer((c) => ({ ...c, [k]: e.target.value }));
+
   // ref כדי שה-callback של סאמיט (שנקשר פעם אחת) תמיד יראה את הערכים העדכניים
-  const liveRef = useRef({ amount, description, onSuccess, onError });
-  liveRef.current = { amount, description, onSuccess, onError };
+  const liveRef = useRef({ amount, description, onSuccess, onError, customer });
+  liveRef.current = { amount, description, onSuccess, onError, customer };
 
   // ביצוע החיוב מול השרת אחרי שסאמיט החזיר טוקן חד-פעמי
   const chargeRef = useRef(null);
   chargeRef.current = async (token) => {
-    const { amount, description, onSuccess, onError } = liveRef.current;
+    const { amount, description, onSuccess, onError, customer } = liveRef.current;
     try {
       const res = await fetch('/api/sumit/charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, amount, description }),
+        body: JSON.stringify({ token, amount, description, customer }),
       });
 
       const data = await res.json();
@@ -150,6 +162,108 @@ export default function SumitPaymentForm({ amount, description = '', onSuccess, 
         )}
 
         <form data-og="form" onSubmit={handleSubmit} className="sp-form" dir="rtl">
+          {/* ───── פרטי הלקוח והמשלוח ───── */}
+          <div className="sp-section">פרטים אישיים ומשלוח</div>
+
+          <div className="sp-field">
+            <label>
+              <span className="sp-label">שם מלא</span>
+              <input
+                type="text"
+                value={customer.fullName}
+                onChange={setField('fullName')}
+                placeholder="שם פרטי ומשפחה"
+                className="sp-input"
+                autoComplete="name"
+                required
+              />
+            </label>
+          </div>
+
+          <div className="sp-row">
+            <div className="sp-field sp-field--half">
+              <label>
+                <span className="sp-label">אימייל</span>
+                <input
+                  type="email"
+                  value={customer.email}
+                  onChange={setField('email')}
+                  placeholder="name@email.com"
+                  className="sp-input"
+                  autoComplete="email"
+                  dir="ltr"
+                  required
+                />
+              </label>
+            </div>
+            <div className="sp-field sp-field--half">
+              <label>
+                <span className="sp-label">טלפון</span>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  value={customer.phone}
+                  onChange={setField('phone')}
+                  placeholder="050-0000000"
+                  className="sp-input"
+                  autoComplete="tel"
+                  dir="ltr"
+                  required
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="sp-field">
+            <label>
+              <span className="sp-label">כתובת למשלוח</span>
+              <input
+                type="text"
+                value={customer.address}
+                onChange={setField('address')}
+                placeholder="רחוב ומספר בית"
+                className="sp-input"
+                autoComplete="street-address"
+                required
+              />
+            </label>
+          </div>
+
+          <div className="sp-row">
+            <div className="sp-field sp-field--half">
+              <label>
+                <span className="sp-label">עיר</span>
+                <input
+                  type="text"
+                  value={customer.city}
+                  onChange={setField('city')}
+                  placeholder="עיר"
+                  className="sp-input"
+                  autoComplete="address-level2"
+                  required
+                />
+              </label>
+            </div>
+            <div className="sp-field sp-field--half">
+              <label>
+                <span className="sp-label">מיקוד</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={customer.zip}
+                  onChange={setField('zip')}
+                  placeholder="0000000"
+                  className="sp-input"
+                  autoComplete="postal-code"
+                  dir="ltr"
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* ───── פרטי תשלום ───── */}
+          <div className="sp-section">פרטי תשלום</div>
+
           {/* שדה מספר כרטיס */}
           <div className="sp-field">
             <label>
@@ -281,6 +395,12 @@ const styles = `
   }
   .sp-errors p { margin: 0; }
   .sp-form { display: flex; flex-direction: column; gap: 16px; }
+  .sp-section {
+    font-size: 13px; font-weight: 800; color: #0c0c0e;
+    letter-spacing: -0.01em; margin: 4px 0 -4px;
+    padding-bottom: 8px; border-bottom: 1px solid #eee;
+  }
+  .sp-section:not(:first-child) { margin-top: 12px; }
   .sp-field { display: flex; flex-direction: column; }
   .sp-label {
     font-size: 13px;
