@@ -50,11 +50,7 @@ export default function CheckoutPage() {
         </a>
         <a href="/" className="co-brand">
           <span className="co-mark">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="6" cy="11" r="2.1" /><circle cx="10" cy="7" r="2.1" />
-              <circle cx="14" cy="7" r="2.1" /><circle cx="18" cy="11" r="2.1" />
-              <path d="M12 13c-2.6 0-4.7 1.9-5.2 4.2C6.4 19.1 7.8 20.3 9.4 20.3c1 0 1.7-.5 2.6-.5s1.6.5 2.6.5c1.6 0 3-1.2 2.6-3.1C16.7 14.9 14.6 13 12 13z" />
-            </svg>
+            <img src="/assets/logo.png" alt="נקי בשנייה" width="32" height="32" />
           </span>
           נקי בשנייה
         </a>
@@ -135,10 +131,10 @@ const css = `
   .co-back:hover { color: var(--ink); }
   .co-brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 900; font-size: 19px; letter-spacing: -.02em; }
   .co-mark {
-    width: 32px; height: 32px; border-radius: 9px; background: var(--yellow);
-    color: #0c0c0e; display: grid; place-items: center;
+    width: 32px; height: 32px; border-radius: 9px; overflow: hidden;
+    display: grid; place-items: center;
   }
-  .co-mark svg { width: 20px; height: 20px; }
+  .co-mark img { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; display: block; }
 
   .co-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 40px; align-items: start; }
 
