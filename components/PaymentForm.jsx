@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * SumitPaymentForm
@@ -23,68 +23,19 @@ export default function SumitPaymentForm({ amount, description = '', onSuccess, 
   const [errors, setErrors] = useState([]);
   const [success, setSuccess] = useState(false);
 
-  // טעינת ספריית סאמיט
-  useEffect(() => {
-    if (document.getElementById('sumit-payments-sdk')) {
-      setSdkReady(true);
-      return;
-    }
+  // ref כדי שה-callback של סאמיט (שנקשר פעם אחת) תמיד יראה את הערכים העדכניים
+  const liveRef = useRef({ amount, description, onSuccess, onError });
+  liveRef.current = { amount, description, onSuccess, onError };
 
-    // סאמיט דורש jQuery
-    const loadJQuery = () =>
-      new Promise((resolve) => {
-        if (window.jQuery) return resolve();
-        const s = document.createElement('script');
-        s.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
-        s.onload = resolve;
-        document.head.appendChild(s);
-      });
-
-    const loadSumit = () =>
-      new Promise((resolve) => {
-        const s = document.createElement('script');
-        s.id = 'sumit-payments-sdk';
-        s.src = 'https://app.sumit.co.il/scripts/payments.js';
-        s.onload = resolve;
-        document.head.appendChild(s);
-      });
-
-    loadJQuery()
-      .then(loadSumit)
-      .then(() => {
-        window.jQuery(function () {
-          window.OfficeGuy.Payments.BindFormSubmit({
-            CompanyID: process.env.NEXT_PUBLIC_SUMIT_COMPANY_ID,
-            APIPublicKey: process.env.NEXT_PUBLIC_SUMIT_API_PUBLIC_KEY,
-          });
-        });
-        setSdkReady(true);
-      });
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrors([]);
-    setLoading(true);
-
-    const form = e.target;
-    const token = form.querySelector('[name="og-token"]')?.value;
-
-    if (!token) {
-      setErrors(['פרטי האשראי לא אומתו. אנא בדוק את הפרטים ונסה שנית.']);
-      setLoading(false);
-      return;
-    }
-
+  // ביצוע החיוב מול השרת אחרי שסאמיט החזיר טוקן חד-פעמי
+  const chargeRef = useRef(null);
+  chargeRef.current = async (token) => {
+    const { amount, description, onSuccess, onError } = liveRef.current;
     try {
       const res = await fetch('/api/sumit/charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          token,
-          amount,
-          description,
-        }),
+        body: JSON.stringify({ token, amount, description }),
       });
 
       const data = await res.json();
@@ -99,9 +50,71 @@ export default function SumitPaymentForm({ amount, description = '', onSuccess, 
       const msg = err.message || 'שגיאה לא צפויה';
       setErrors([msg]);
       onError?.(msg);
-    } finally {
       setLoading(false);
     }
+  };
+
+  // טעינת ספריית סאמיט + קישור הטופס
+  useEffect(() => {
+    // סאמיט דורש jQuery
+    const loadJQuery = () =>
+      new Promise((resolve) => {
+        if (window.jQuery) return resolve();
+        const s = document.createElement('script');
+        s.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
+        s.onload = resolve;
+        document.head.appendChild(s);
+      });
+
+    const loadSumit = () =>
+      new Promise((resolve) => {
+        if (document.getElementById('sumit-payments-sdk')) return resolve();
+        const s = document.createElement('script');
+        s.id = 'sumit-payments-sdk';
+        s.src = 'https://app.sumit.co.il/scripts/payments.js';
+        s.onload = resolve;
+        document.head.appendChild(s);
+      });
+
+    loadJQuery()
+      .then(loadSumit)
+      .then(() => {
+        window.jQuery(function () {
+          window.OfficeGuy.Payments.BindFormSubmit({
+            CompanyID: process.env.NEXT_PUBLIC_SUMIT_COMPANY_ID,
+            APIPublicKey: process.env.NEXT_PUBLIC_SUMIT_API_PUBLIC_KEY,
+            ResponseLanguage: 'he',
+            // עם ResponseCallback סאמיט לא מבצע submit נייטיב — הוא מעביר לנו את התגובה.
+            ResponseCallback: function (resp) {
+              if (!resp || resp.Status !== 0) {
+                const msg =
+                  resp?.UserErrorMessage ||
+                  resp?.TechnicalErrorDetails ||
+                  'פרטי האשראי לא אומתו. אנא בדוק את הפרטים ונסה שנית.';
+                setErrors([msg]);
+                setLoading(false);
+                liveRef.current.onError?.(msg);
+                return;
+              }
+              const token = resp.Data?.SingleUseToken;
+              if (!token) {
+                setErrors(['לא התקבל אישור אשראי. נסה שנית.']);
+                setLoading(false);
+                return;
+              }
+              chargeRef.current(token);
+            },
+          });
+        });
+        setSdkReady(true);
+      });
+  }, []);
+
+  // לחיצה על "שלם": מנקה שגיאות ומדליק טעינה. הטוקניזציה והחיוב קורים ב-ResponseCallback.
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setErrors([]);
+    setLoading(true);
   };
 
   if (success) {
