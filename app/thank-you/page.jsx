@@ -21,7 +21,7 @@ export default function ThankYouPage() {
         </div>
         <h1>תודה על ההזמנה!</h1>
         <p>התשלום התקבל בהצלחה{info.amount ? ` · ₪${Number(info.amount).toLocaleString('he-IL')}` : ''}.</p>
-        <p className="ty-sub">שלחנו לך אישור ופרטי מעקב. המשלוח יוצא אליך בקרוב.</p>
+        <p className="ty-sub">שלחנו לך אישור במייל. המשלוח יוצא אליך בקרוב.</p>
         {info.tx && <div className="ty-tx">מספר עסקה: <b>{info.tx}</b></div>}
         <a href="/" className="ty-btn">חזרה לאתר</a>
       </div>
