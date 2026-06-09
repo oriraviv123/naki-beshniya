@@ -1,4 +1,2 @@
-node_modules/
+.claude/
 tools/node_modules/
-tools/*.png
-tools/candidates/
