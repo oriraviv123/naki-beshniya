@@ -235,12 +235,12 @@ export default function SumitPaymentForm({ amount, description = '', onSuccess, 
 const styles = `
   .sp-wrapper {
     background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    border-radius: 20px;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.45);
     padding: 32px;
     max-width: 420px;
     margin: 0 auto;
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: 'Heebo', 'Segoe UI', Arial, sans-serif;
   }
   .sp-header {
     display: flex;
@@ -287,29 +287,29 @@ const styles = `
     outline: none;
     direction: ltr;
   }
-  .sp-input:focus { border-color: #4f6ef7; box-shadow: 0 0 0 3px rgba(79,110,247,0.12); }
+  .sp-input:focus { border-color: #0c0c0e; box-shadow: 0 0 0 3px rgba(255,210,59,0.35); }
   .sp-input--sm { width: auto; flex: 1; min-width: 0; }
   .sp-row { display: flex; gap: 16px; }
   .sp-field--half { flex: 1; }
   .sp-expiry { display: flex; align-items: center; gap: 6px; }
   .sp-slash { color: #aaa; font-size: 18px; }
   .sp-btn {
-    background: #4f6ef7;
-    color: #fff;
+    background: #0c0c0e;
+    color: #ffd23b;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 14px;
     font-size: 17px;
-    font-weight: 700;
+    font-weight: 800;
     cursor: pointer;
     margin-top: 8px;
     transition: background 0.2s, transform 0.1s;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 52px;
+    min-height: 54px;
   }
-  .sp-btn:hover:not(:disabled) { background: #3a56d4; }
+  .sp-btn:hover:not(:disabled) { background: #000; }
   .sp-btn:active:not(:disabled) { transform: scale(0.98); }
   .sp-btn:disabled { opacity: 0.6; cursor: not-allowed; }
   .sp-spinner {
