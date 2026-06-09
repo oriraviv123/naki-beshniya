@@ -181,17 +181,32 @@ section{position:relative}
 .hero-price .old{font-size:16px;color:var(--muted);text-decoration:line-through}
 .hero-price .off{font-size:12px;font-weight:800;color:#0c0c0e;background:var(--yellow);padding:3px 8px;border-radius:6px;align-self:center}
 /* hero motion stage (the "video") */
-.hero-stage{position:relative;width:100%;aspect-ratio:3/4;border-radius:var(--r-lg);overflow:hidden;background:#0d0d0f;border:1px solid var(--line-2);box-shadow:0 50px 100px rgba(0,0,0,.6);will-change:transform}
-.hero-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:50% 50%;
-  animation:groom 9s cubic-bezier(.45,.05,.55,.95) infinite;will-change:transform;padding:12px}
+.hero-stage{position:relative;width:100%;aspect-ratio:1/1;border-radius:var(--r-lg);overflow:hidden;background:#0d0d0f;border:1px solid var(--line-2);box-shadow:0 50px 100px rgba(0,0,0,.6),0 0 0 0 rgba(255,210,59,0);transition:box-shadow var(--d-slow) var(--e-out),transform var(--d-slow) var(--e-out);will-change:transform}
+.hero-stage:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 70px 120px rgba(0,0,0,.7),0 0 40px rgba(255,210,59,.18)}
+.hero-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:55% 50%;
+  animation:groom 12s cubic-bezier(.45,.05,.55,.95) infinite;will-change:transform}
 @keyframes groom{
-  0%{transform:scale(1.0) translate(0,0)}
-  25%{transform:scale(1.03) translate(-1%,-.5%)}
-  50%{transform:scale(1.05) translate(-1.5%,.2%)}
-  75%{transform:scale(1.03) translate(-.5%,.8%)}
-  100%{transform:scale(1.0) translate(0,0)}
+  0%  {transform:scale(1.04) translate(0,0)}
+  20% {transform:scale(1.07) translate(-1%,-.5%)}
+  45% {transform:scale(1.10) translate(-1.8%,.3%)}
+  70% {transform:scale(1.07) translate(-.6%,.8%)}
+  100%{transform:scale(1.04) translate(0,0)}
 }
-.hero-stage::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 64%,rgba(12,12,14,.42));pointer-events:none}
+/* entrance fade-in for hero image */
+@keyframes heroReveal{
+  0%{opacity:0;transform:scale(1.12) translate(0,0)}
+  100%{opacity:1;transform:scale(1.04) translate(0,0)}
+}
+.hero-stage img{animation:heroReveal 1.1s var(--e-out) forwards, groom 12s 1.1s cubic-bezier(.45,.05,.55,.95) infinite}
+.hero-stage::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(12,12,14,.55));pointer-events:none;z-index:1}
+/* animated golden glow border */
+.hero-stage::before{content:"";position:absolute;inset:-1px;border-radius:calc(var(--r-lg) + 1px);
+  background:linear-gradient(135deg,rgba(255,210,59,.0) 0%,rgba(255,210,59,.6) 50%,rgba(255,210,59,.0) 100%);
+  animation:borderGlow 3s ease-in-out infinite;z-index:0;pointer-events:none}
+@keyframes borderGlow{
+  0%,100%{opacity:.4;transform:rotate(0deg)}
+  50%{opacity:1;transform:rotate(180deg)}
+}
 .hero-sweep{position:absolute;inset:-20%;pointer-events:none;z-index:2;
   background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.12) 50%,transparent 62%);
   transform:translateX(-130%);animation:sweep 6s ease-in-out infinite}
@@ -581,7 +596,7 @@ footer ul a:hover{color:var(--yellow)}
         <div class="core"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div>
       </div>
       <div class="hero-stage r-clip" data-parallax="-0.04">
-        <img src="assets/lifestyle-dog.webp" alt="כפפת נקי בשנייה מסירה פרווה מספה בתנועה אחת קלה" width="900" height="1200" />
+        <img src="assets/hero-new.webp" alt="כפפת נקי בשנייה מסירה פרווה מספה בתנועה אחת קלה" width="900" height="1200" />
         <div class="hero-sweep"></div>
         <div class="fur" aria-hidden="true">
           <i style="left:22%;animation-duration:6.5s;animation-delay:.0s"></i>
