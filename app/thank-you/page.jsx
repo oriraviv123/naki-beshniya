@@ -45,7 +45,7 @@ const css = `
     margin-bottom: 26px; font-family: 'Frank Ruhl Libre', Georgia, serif;
     font-weight: 900; font-size: 20px; letter-spacing: -.01em; color: var(--ink);
   }
-  .ty-brand img { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; display: block; }
+  .ty-brand img { width: 88px; height: 88px; border-radius: 20px; object-fit: cover; display: block; }
   .ty-check {
     width: 76px; height: 76px; margin: 0 auto 22px; border-radius: 50%;
     background: var(--yellow); color: #0c0c0e; display: grid; place-items: center;

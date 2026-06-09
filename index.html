@@ -126,13 +126,13 @@ section{position:relative}
    NAV
    ============================================================ */
 .nav{position:fixed;top:0;right:0;left:0;z-index:1000;transition:background var(--d-base),border-color var(--d-base),backdrop-filter var(--d-base)}
-.nav-inner{display:flex;align-items:center;justify-content:space-between;height:78px;max-width:var(--maxw);margin:0 auto;padding:0 28px}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:110px;max-width:var(--maxw);margin:0 auto;padding:0 28px}
 .nav.scrolled{background:rgba(12,12,14,.72);backdrop-filter:blur(16px) saturate(140%);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:11px;font-family:var(--font-serif);font-weight:900;font-size:23px;letter-spacing:-.01em}
-.brand .bmark{width:46px;height:46px;border-radius:13px;background:var(--yellow);display:grid;place-items:center;flex:0 0 auto}
+.brand .bmark{width:92px;height:92px;border-radius:22px;background:var(--yellow);display:grid;place-items:center;flex:0 0 auto}
 .brand .bmark svg{width:23px;height:23px;fill:#0c0c0e}
 .brand .bmark--img{background:transparent;overflow:hidden}
-.brand .bmark--img img{width:100%;height:100%;object-fit:cover;border-radius:13px;display:block}
+.brand .bmark--img img{width:100%;height:100%;object-fit:cover;border-radius:22px;display:block}
 .nav-links{display:flex;gap:30px;font-size:15px;font-weight:600;color:var(--muted)}
 .nav-links a{position:relative;padding:4px 0}
 .nav-links a::after{content:"";position:absolute;right:0;bottom:-2px;height:2px;width:0;background:var(--yellow);transition:width var(--d-fast) var(--e-out)}
