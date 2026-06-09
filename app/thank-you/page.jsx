@@ -14,6 +14,10 @@ export default function ThankYouPage() {
     <main className="ty">
       <style>{css}</style>
       <div className="ty-card">
+        <div className="ty-brand">
+          <img src="/assets/logo.png" alt="נקי בשנייה" width="44" height="44" />
+          <span>נקי בשנייה</span>
+        </div>
         <div className="ty-check">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="m5 13 4 4L19 7" />
@@ -36,6 +40,12 @@ const css = `
     padding: 48px 40px; max-width: 460px; width: 100%; text-align: center;
     box-shadow: 0 40px 90px rgba(0,0,0,.5);
   }
+  .ty-brand {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-bottom: 26px; font-family: 'Frank Ruhl Libre', Georgia, serif;
+    font-weight: 900; font-size: 20px; letter-spacing: -.01em; color: var(--ink);
+  }
+  .ty-brand img { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; display: block; }
   .ty-check {
     width: 76px; height: 76px; margin: 0 auto 22px; border-radius: 50%;
     background: var(--yellow); color: #0c0c0e; display: grid; place-items: center;

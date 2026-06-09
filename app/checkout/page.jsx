@@ -131,10 +131,10 @@ const css = `
   .co-back:hover { color: var(--ink); }
   .co-brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 900; font-size: 19px; letter-spacing: -.02em; }
   .co-mark {
-    width: 32px; height: 32px; border-radius: 9px; overflow: hidden;
+    width: 38px; height: 38px; border-radius: 11px; overflow: hidden;
     display: grid; place-items: center;
   }
-  .co-mark img { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; display: block; }
+  .co-mark img { width: 100%; height: 100%; object-fit: cover; border-radius: 11px; display: block; }
 
   .co-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 40px; align-items: start; }
 
