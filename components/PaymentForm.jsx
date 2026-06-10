@@ -17,7 +17,7 @@ import { useEffect, useRef, useState } from 'react';
  *   SUMIT_API_KEY=...          (מפתח פרטי – בצד שרת בלבד)
  */
 
-export default function SumitPaymentForm({ amount, description = '', onSuccess, onError }) {
+export default function SumitPaymentForm({ amount, quantity = 1, description = '', onSuccess, onError }) {
   const [loading, setLoading] = useState(false);
   const [sdkReady, setSdkReady] = useState(false);
   const [errors, setErrors] = useState([]);
@@ -36,18 +36,19 @@ export default function SumitPaymentForm({ amount, description = '', onSuccess, 
     setCustomer((c) => ({ ...c, [k]: e.target.value }));
 
   // ref כדי שה-callback של סאמיט (שנקשר פעם אחת) תמיד יראה את הערכים העדכניים
-  const liveRef = useRef({ amount, description, onSuccess, onError, customer });
-  liveRef.current = { amount, description, onSuccess, onError, customer };
+  const liveRef = useRef({ quantity, onSuccess, onError, customer });
+  liveRef.current = { quantity, onSuccess, onError, customer };
 
-  // ביצוע החיוב מול השרת אחרי שסאמיט החזיר טוקן חד-פעמי
+  // ביצוע החיוב מול השרת אחרי שסאמיט החזיר טוקן חד-פעמי.
+  // שולחים רק qty — המחיר נקבע בצד-השרת (אנטי-זיוף מחיר).
   const chargeRef = useRef(null);
   chargeRef.current = async (token) => {
-    const { amount, description, onSuccess, onError, customer } = liveRef.current;
+    const { quantity, onSuccess, onError, customer } = liveRef.current;
     try {
       const res = await fetch('/api/sumit/charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, amount, description, customer }),
+        body: JSON.stringify({ token, qty: quantity, customer }),
       });
 
       const data = await res.json();
@@ -57,7 +58,7 @@ export default function SumitPaymentForm({ amount, description = '', onSuccess, 
       }
 
       setSuccess(true);
-      onSuccess?.(data.transactionId);
+      onSuccess?.(data.transactionId, data.amount);
     } catch (err) {
       const msg = err.message || 'שגיאה לא צפויה';
       setErrors([msg]);

@@ -27,8 +27,9 @@ export default function CheckoutPage() {
     setReady(true);
   }, []);
 
-  const handleSuccess = (transactionId) => {
-    const url = `/thank-you?tx=${encodeURIComponent(transactionId || '')}&amount=${order.price}`;
+  const handleSuccess = (transactionId, chargedAmount) => {
+    const amt = chargedAmount != null ? chargedAmount : order.price;
+    const url = `/thank-you?tx=${encodeURIComponent(transactionId || '')}&amount=${encodeURIComponent(amt)}`;
     setTimeout(() => {
       window.location.href = url;
     }, 1200);
@@ -107,6 +108,7 @@ export default function CheckoutPage() {
         <section className="co-pay">
           <SumitPaymentForm
             amount={order.price}
+            quantity={order.qty}
             description={order.desc}
             onSuccess={handleSuccess}
             onError={(msg) => console.error('שגיאת תשלום:', msg)}
