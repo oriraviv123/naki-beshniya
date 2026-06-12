@@ -1017,15 +1017,17 @@ footer ul a:hover{color:var(--yellow)}
   var bundles=[].slice.call(document.querySelectorAll('.bundle'));
   var addCart=document.getElementById('addCart'), atcPrice=document.getElementById('atcPrice'), atcDesc=document.getElementById('atcDesc'), atcGo=document.getElementById('atcGo');
   function syncBundle(b){
-    var price=b.getAttribute('data-price'), old=b.getAttribute('data-old'), qty=b.getAttribute('data-qty'), title=b.querySelector('h3').textContent.trim();
+    var price=parseInt(b.getAttribute('data-price'),10)||0, old=parseInt(b.getAttribute('data-old'),10)||0, qty=parseInt(b.getAttribute('data-qty'),10)||1;
     var rib=b.querySelector('.ribbon');
-    var desc='חבילת '+title+(rib?' · '+rib.textContent.trim():'');
-    var url='/checkout?qty='+encodeURIComponent(qty)+'&price='+encodeURIComponent(price)+'&old='+encodeURIComponent(old)+'&desc='+encodeURIComponent(desc);
+    /* רק qty נשלח לצ'קאאוט — המחיר והתיאור נגזרים שם מהקטלוג (אנטי-זיוף) */
+    var url='/checkout?qty='+encodeURIComponent(qty);
     addCart.textContent='הוספה לסל · ₪'+price;
     addCart.setAttribute('href', url);
     if(atcGo) atcGo.setAttribute('href', url);
+    /* price/old מאולצים למספרים שלמים — אין דרך להזריק HTML דרך innerHTML */
     atcPrice.innerHTML='₪'+price+' <s>₪'+old+'</s>';
-    atcDesc.textContent=desc;
+    var title=b.querySelector('h3').textContent.trim();
+    atcDesc.textContent='חבילת '+title+(rib?' · '+rib.textContent.trim():'');
   }
   bundles.forEach(function(b){ b.addEventListener('click', function(e){ e.preventDefault();
     bundles.forEach(function(x){x.classList.remove('active');}); b.classList.add('active');

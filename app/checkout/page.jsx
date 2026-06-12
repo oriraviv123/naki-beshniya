@@ -11,7 +11,14 @@ import SumitPaymentForm from '@/components/PaymentForm';
  * ומעביר אותם אל SumitPaymentForm (הקובץ המקורי, ללא שינוי).
  */
 
-const DEFAULT = { qty: 1, price: 99, old: 179, desc: 'כפפת נקי בשנייה' };
+// קטלוג תצוגה — תואם למחירים בצד-השרת (route.js). כל מה שמוצג נגזר מ-qty בלבד,
+// כך שאי אפשר לזייף מחיר/תיאור דרך פרמטרים ב-URL, והסכום המוצג תמיד שווה לחיוב בפועל.
+const CATALOG = {
+  1: { price: 99,  old: 179, desc: 'כפפה אחת' },
+  2: { price: 178, old: 358, desc: 'זוג כפפות' },
+  3: { price: 237, old: 537, desc: 'שלישיית כפפות' },
+};
+const DEFAULT = { qty: 1, ...CATALOG[1] };
 
 export default function CheckoutPage() {
   const [order, setOrder] = useState(DEFAULT);
@@ -19,10 +26,10 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
-    const qty = Number(p.get('qty')) || DEFAULT.qty;
-    const price = Number(p.get('price')) || DEFAULT.price;
-    const old = Number(p.get('old')) || 0;
-    const desc = p.get('desc') || DEFAULT.desc;
+    const q = Number(p.get('qty'));
+    const item = CATALOG[q];
+    const qty = item ? q : 1;
+    const { price, old, desc } = item || CATALOG[1];
     setOrder({ qty, price, old, desc });
     setReady(true);
   }, []);
