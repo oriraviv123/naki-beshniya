@@ -187,7 +187,7 @@ section{position:relative}
 /* hero motion stage (the "video") */
 .hero-stage{position:relative;width:100%;aspect-ratio:1/1;border-radius:var(--r-lg);overflow:hidden;background:#0d0d0f;border:1px solid var(--line-2);box-shadow:0 50px 100px rgba(0,0,0,.6),0 0 0 0 rgba(255,210,59,0);transition:box-shadow var(--d-slow) var(--e-out),transform var(--d-slow) var(--e-out);will-change:transform}
 .hero-stage:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 70px 120px rgba(0,0,0,.7),0 0 40px rgba(255,210,59,.18)}
-.hero-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:55% 50%;
+.hero-stage img,.hero-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:55% 50%;
   animation:groom 12s cubic-bezier(.45,.05,.55,.95) infinite;will-change:transform}
 @keyframes groom{
   0%  {transform:scale(1.0) translate(0,0)}
@@ -199,7 +199,7 @@ section{position:relative}
   0%{opacity:0;transform:scale(1.05)}
   100%{opacity:1;transform:scale(1.0)}
 }
-.hero-stage img{animation:heroReveal 1.1s var(--e-out) forwards, groom 12s 1.1s cubic-bezier(.45,.05,.55,.95) infinite}
+.hero-stage img,.hero-stage video{animation:heroReveal 1.1s var(--e-out) forwards, groom 12s 1.1s cubic-bezier(.45,.05,.55,.95) infinite}
 .hero-stage::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(12,12,14,.55));pointer-events:none;z-index:1}
 /* animated golden glow border */
 .hero-stage::before{content:"";position:absolute;inset:-1px;border-radius:calc(var(--r-lg) + 1px);
@@ -316,9 +316,9 @@ section{position:relative}
    PROOF
    ============================================================ */
 .proof{padding:0 0 140px}
-.proof-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;align-items:center}
-.proof-media{position:relative;border-radius:var(--r-lg);overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.5)}
-.proof-media img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.proof-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:40px 60px;align-items:center}
+.proof-media{position:relative;border-radius:var(--r-lg);overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.5);aspect-ratio:1/1;width:100%;max-width:420px}
+.proof-media img{width:100%;height:100%;object-fit:contain}
 .proof-media .cap{position:absolute;bottom:20px;right:20px;background:var(--yellow);color:#0c0c0e;font-weight:800;
   font-size:14px;padding:10px 16px;border-radius:12px}
 .proof-stat{font-family:var(--font-serif);font-weight:900;font-size:clamp(110px,20vw,260px);line-height:.82;color:var(--yellow);letter-spacing:-.04em}
@@ -604,7 +604,7 @@ footer ul a:hover{color:var(--yellow)}
         <div class="core"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div>
       </div>
       <div class="hero-stage" data-parallax="-0.04">
-        <img src="assets/hero-new.webp" alt="כפפת נקי בשנייה מסירה פרווה מספה בתנועה אחת קלה" width="900" height="1200" />
+        <video src="assets/hero.mp4" poster="assets/hero-new.webp" autoplay loop muted playsinline preload="auto" aria-label="כפפת נקי בשנייה מסירה פרווה מספה בתנועה אחת קלה" width="900" height="1200"></video>
         <div class="hero-sweep"></div>
         <div class="fur" aria-hidden="true">
           <i style="left:22%;animation-duration:6.5s;animation-delay:.0s"></i>
@@ -700,19 +700,18 @@ footer ul a:hover{color:var(--yellow)}
 <!-- ============ PROOF ============ -->
 <section class="proof">
   <div class="wrap proof-grid">
-    <div class="proof-media r-clip">
-      <img src="assets/demo-couch.webp" alt="כמות הפרווה שנאספה מהספה בהעברה אחת של כפפת נקי בשנייה" width="420" height="315" />
-      <span class="cap">העברה אחת על הספה</span>
-    </div>
     <div>
       <div class="proof-stat r-up"><span id="proofNum" data-count="95">0</span><span class="pct">%</span></div>
-      <h2 class="r-up">מהפרווה שעל הספה — <span style="color:var(--yellow)">נאספת בהעברה אחת</span></h2>
+      <h2 class="r-up">מהפרווה שעל הספה <span style="color:var(--yellow)">נאספת בהעברה אחת</span> —</h2>
       <p class="r-up">העבירו פעם אחת, וכמעט כל הפרווה כבר בתוך הרשת — לא על הכריות, לא על הבגדים, לא בתוך מכונת הכביסה.</p>
       <div class="mini r-up" data-stagger>
         <div class="r-up"><b>∞</b><span>שימושים חוזרים</span></div>
         <div class="r-up"><b>0</b><span>גלגלונים לקנות</span></div>
         <div class="r-up"><b>מאות ₪</b><span>חיסכון בשנה</span></div>
       </div>
+    </div>
+    <div class="proof-media r-clip">
+      <img src="assets/glove-features.png" alt="כפפת נקי בשנייה עם כל הייחודיות" />
     </div>
   </div>
 </section>
@@ -771,14 +770,14 @@ footer ul a:hover{color:var(--yellow)}
       <p>ספה, רכב, חדר שינה — כדאי שתהיה כפפה בכל מקום. ככל שלוקחים יותר, המחיר יורד.</p>
     </div>
     <div class="bundles" id="bundles">
-      <label class="bundle" data-qty="1" data-price="99" data-old="179" data-cursor>
+      <label class="bundle active" data-qty="1" data-price="99" data-old="179" data-cursor>
         <span class="pick"></span>
         <h3>כפפה אחת</h3>
         <p class="bd">מספיק כדי להחליף את הרולר.</p>
         <div class="bp"><span class="bnow">₪99</span><span class="bold-old">₪179</span></div>
         <span class="per">₪99 ליחידה</span>
       </label>
-      <label class="bundle active" data-qty="3" data-price="237" data-old="537" data-cursor>
+      <label class="bundle" data-qty="3" data-price="237" data-old="537" data-cursor>
         <span class="ribbon">הכי משתלם · הבחירה הפופולרית</span>
         <span class="pick"></span>
         <h3>שלישייה</h3>
