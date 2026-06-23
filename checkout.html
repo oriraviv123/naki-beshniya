@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>דף תשלום — נקי בשנייה</title>
+<meta name="theme-color" content="#0c0c0e" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&family=Frank+Ruhl+Libre:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0c0e; --bg-2:#121214; --surface:#17171a; --surface-2:#202024;
+  --ink:#f5f1e8; --muted:#a8a297; --faint:#6f6a61;
+  --line:rgba(245,241,232,.12); --line-2:rgba(245,241,232,.18);
+  --yellow:#ffd23b; --yellow-d:#f0b400; --cream:#f3eee4; --cream-ink:#16140f;
+  --maxw:1280px;
+  --r:16px; --r-lg:28px; --r-pill:999px;
+  --font-sans:'Heebo','Segoe UI',Arial,sans-serif;
+  --font-serif:'Frank Ruhl Libre',Georgia,serif;
+  --d-fast:240ms; --d-base:420ms;
+  --e-out:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;overflow-x:clip}
+body{
+  font-family:var(--font-sans);background:var(--bg);color:var(--ink);
+  line-height:1.7;font-size:17px;-webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;flex-direction:column;
+}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{line-height:1.04;font-weight:900;letter-spacing:-.02em}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+
+.header{padding:20px 0;border-bottom:1px solid var(--line)}
+.header-inner{max-width:var(--maxw);margin:0 auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--font-serif);font-weight:900;font-size:23px}
+.brand img{width:40px;height:40px;border-radius:12px}
+.back-link{color:var(--muted);font-size:15px;text-decoration:underline;cursor:pointer}
+.back-link:hover{color:var(--ink)}
+
+.checkout-container{flex:1;display:flex;align-items:center;padding:60px 28px}
+.checkout-grid{max-width:1080px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start}
+.shipping-wrapper{order:2}
+.form-section{order:1}
+
+.form-section h2{font-size:32px;margin-bottom:30px}
+.form-group{margin-bottom:24px;display:flex;flex-direction:column}
+.form-group label{font-size:14px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.05em}
+.form-group input,.form-group select{
+  background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);
+  color:var(--ink);padding:14px 16px;font-family:var(--font-sans);font-size:15px;
+  transition:border-color var(--d-fast) var(--e-out)
+}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--yellow)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+.shipping-section{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-lg);padding:28px;position:sticky;top:80px}
+.shipping-section h3{font-size:18px;font-weight:800;margin-bottom:20px;color:var(--ink)}
+
+.shipping-option{
+  display:flex;align-items:flex-start;gap:16px;padding:16px;border:1.5px solid var(--line-2);
+  border-radius:12px;cursor:pointer;transition:all var(--d-fast) var(--e-out);margin-bottom:12px;
+  background:transparent;
+}
+.shipping-option:hover{border-color:var(--yellow);background:rgba(255,210,59,.06)}
+.shipping-option input[type="radio"]{
+  width:20px;height:20px;border-radius:50%;border:2px solid var(--line-2);
+  cursor:pointer;flex:0 0 auto;margin-top:2px;accent-color:var(--yellow);
+  appearance:none;-webkit-appearance:none;
+}
+.shipping-option input[type="radio"]:checked{
+  border-color:var(--yellow);background:var(--yellow);box-shadow:inset 0 0 0 4px var(--surface)
+}
+.shipping-label{flex:1;text-align:right}
+.shipping-label h4{font-size:15px;font-weight:800;margin-bottom:4px;color:var(--ink)}
+.shipping-label p{font-size:13px;color:var(--muted);margin-bottom:8px}
+.shipping-price{font-size:16px;font-weight:800;color:var(--yellow)}
+
+.order-summary{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-lg);padding:24px;margin-top:20px}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.summary-row:last-child{border-bottom:none}
+.summary-row.total{border-top:1px solid var(--line);border-bottom:none;padding-top:16px;padding-bottom:0;font-weight:800;font-size:18px;color:var(--yellow)}
+.summary-label{color:var(--muted)}
+.summary-value{text-align:left}
+
+.payment-section{margin-top:40px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;width:100%;
+  font-weight:800;font-size:16px;cursor:pointer;border:none;
+  border-radius:var(--r-pill);padding:16px 24px;min-height:56px;
+  background:var(--yellow);color:#0c0c0e;overflow:hidden;
+  transition:transform var(--d-fast) var(--e-out),box-shadow var(--d-fast) var(--e-out);
+  box-shadow:0 8px 30px rgba(255,210,59,.28)
+}
+.btn:hover{box-shadow:0 14px 40px rgba(255,210,59,.42)}
+.btn:active{transform:scale(.97)}
+
+.footer{margin-top:auto;padding:40px 0 20px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:13px}
+
+@media (max-width:768px){
+  .checkout-grid{grid-template-columns:1fr;gap:40px}
+  .shipping-section{position:static;sticky:auto}
+  .form-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="brand">
+      <img src="assets/logo.png" alt="נקי בשנייה" />
+      נקי בשנייה
+    </a>
+    <a href="/" class="back-link">← חזרה לחנות</a>
+  </div>
+</header>
+
+<div class="checkout-container">
+  <div class="checkout-grid">
+    <!-- Form Section -->
+    <div class="form-section">
+      <h2>פרטי ההזמנה</h2>
+      <form id="checkoutForm">
+        <div class="form-group">
+          <label for="fullname">שם מלא</label>
+          <input type="text" id="fullname" name="fullname" required placeholder="שם ושם משפחה" />
+        </div>
+
+        <div class="form-group">
+          <label for="phone">טלפון</label>
+          <input type="tel" id="phone" name="phone" required placeholder="05X-XXXXXXX" />
+        </div>
+
+        <div class="form-group">
+          <label for="email">דוא״ל</label>
+          <input type="email" id="email" name="email" required placeholder="example@gmail.com" />
+        </div>
+
+        <div class="form-group">
+          <label for="address">כתובת</label>
+          <input type="text" id="address" name="address" required placeholder="הכתובת שלכם" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">עיר</label>
+            <input type="text" id="city" name="city" required placeholder="עיר" />
+          </div>
+          <div class="form-group">
+            <label for="zip">מיקוד</label>
+            <input type="text" id="zip" name="zip" required placeholder="XXXXX" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">הערות (אופציונלי)</label>
+          <input type="text" id="notes" name="notes" placeholder="הערות למשלוח" />
+        </div>
+      </form>
+    </div>
+
+    <!-- Shipping & Order Summary Section -->
+    <div class="shipping-wrapper">
+      <div class="shipping-section">
+        <h3>אפשרויות משלוח</h3>
+
+        <label class="shipping-option">
+          <input type="radio" name="shipping" value="pickup" checked />
+          <div class="shipping-label">
+            <h4>איסוף מנקודת האיסוף</h4>
+            <p>איסוף מנקודת האיסוף הקרובה אליכם</p>
+            <div class="shipping-price">חינם</div>
+          </div>
+        </label>
+
+        <label class="shipping-option">
+          <input type="radio" name="shipping" value="delivery" />
+          <div class="shipping-label">
+            <h4>משלוח לביתכם</h4>
+            <p>משלוח עד לכתובתכם</p>
+            <div class="shipping-price">+ ₪10</div>
+          </div>
+        </label>
+
+        <!-- Order Summary -->
+        <div class="order-summary">
+          <div class="summary-row">
+            <span class="summary-label">מוצר</span>
+            <span class="summary-value" id="productName">חבילת שלישייה</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">מחיר מוצר</span>
+            <span class="summary-value" id="productPrice">₪237</span>
+          </div>
+          <div class="summary-row" id="shippingRowContainer" style="display:none">
+            <span class="summary-label">משלוח</span>
+            <span class="summary-value" id="shippingPrice">חינם</span>
+          </div>
+          <div class="summary-row total">
+            <span>סה״כ</span>
+            <span id="totalPrice">₪237</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="payment-section">
+        <button class="btn" id="checkoutBtn">המשך לתשלום</button>
+        <p style="margin-top:16px;text-align:center;color:var(--muted);font-size:13px">
+          תשלום מאובטח • ויזה • מאסטרקארד
+        </p>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <p>© 2026 נקי בשנייה · כל הזכויות שמורות</p>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  const SHIPPING_COST = 10;
+
+  const shippingRadios = document.querySelectorAll('input[name="shipping"]');
+  const totalPriceEl = document.getElementById('totalPrice');
+  const shippingPriceEl = document.getElementById('shippingPrice');
+  const shippingRowContainer = document.getElementById('shippingRowContainer');
+  const checkoutForm = document.getElementById('checkoutForm');
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  const productNameEl = document.getElementById('productName');
+  const productPriceEl = document.getElementById('productPrice');
+
+  // Get qty and price from URL params
+  const params = new URLSearchParams(window.location.search);
+  const qty = parseInt(params.get('qty')) || 1;
+  const BASE_PRODUCT_PRICE = parseInt(params.get('price')) || 237;
+
+  // Set product name based on qty
+  const bundleNames = {
+    1: 'כפפה אחת',
+    2: 'זוג כפפות',
+    3: 'חבילת שלישייה'
+  };
+  const productName = bundleNames[qty] || 'חבילה';
+  if (productNameEl) productNameEl.textContent = productName;
+  if (productPriceEl) productPriceEl.textContent = '₪' + BASE_PRODUCT_PRICE;
+
+  // Calculate and display total
+  function updateTotal() {
+    const selectedShipping = document.querySelector('input[name="shipping"]:checked').value;
+    const shippingCost = selectedShipping === 'delivery' ? SHIPPING_COST : 0;
+    const total = BASE_PRODUCT_PRICE + shippingCost;
+
+    // Update shipping row visibility
+    if (shippingCost > 0) {
+      shippingRowContainer.style.display = 'flex';
+      shippingPriceEl.textContent = '+ ₪' + shippingCost;
+    } else {
+      shippingRowContainer.style.display = 'none';
+    }
+
+    totalPriceEl.textContent = '₪' + total;
+  }
+
+  // Listen to shipping option changes
+  shippingRadios.forEach(radio => {
+    radio.addEventListener('change', updateTotal);
+  });
+
+  // Form submission
+  checkoutBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+
+    // Validate form
+    if (!checkoutForm.checkValidity()) {
+      checkoutForm.reportValidity();
+      return;
+    }
+
+    const selectedShipping = document.querySelector('input[name="shipping"]:checked').value;
+    const shippingCost = selectedShipping === 'delivery' ? SHIPPING_COST : 0;
+    const total = BASE_PRODUCT_PRICE + shippingCost;
+
+    const orderData = {
+      fullname: document.getElementById('fullname').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value,
+      address: document.getElementById('address').value,
+      city: document.getElementById('city').value,
+      zip: document.getElementById('zip').value,
+      notes: document.getElementById('notes').value,
+      shipping: selectedShipping,
+      shippingCost: shippingCost,
+      totalPrice: total,
+      qty: qty
+    };
+
+    // Log order data (replace with actual API call)
+    console.log('Order Data:', orderData);
+
+    // Here you would send this to your payment processor
+    alert('הזמנה נקלטה! בשלב זה מיוטוען לעמוד התשלום...\n\nסה״כ: ₪' + total);
+  });
+
+  // Initialize total on page load
+  updateTotal();
+})();
+</script>
+
+</body>
+</html>

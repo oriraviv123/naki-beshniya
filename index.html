@@ -795,7 +795,7 @@ footer ul a:hover{color:var(--yellow)}
       </label>
     </div>
     <div class="offer-cta">
-      <a href="#" class="btn btn--lg btn--block" id="addCart" data-cursor data-magnetic>הוספה לסל · ₪237</a>
+      <a href="/checkout.html?qty=3" class="btn btn--lg btn--block" id="addCart" data-cursor data-magnetic>הוספה לסל · ₪237</a>
       <div class="offer-trust">
         <span><svg viewBox="0 0 24 24"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7" stroke-linejoin="round"/><circle cx="6.5" cy="17.5" r="1.8"/><circle cx="17.5" cy="17.5" r="1.8"/></svg>משלוח חינם</span>
         <span><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5z" stroke-linejoin="round"/></svg>אחריות 30 יום</span>
@@ -880,7 +880,7 @@ footer ul a:hover{color:var(--yellow)}
     </div>
     <div class="atc-r">
       <span class="atc-price" id="atcPrice">₪237 <s>₪537</s></span>
-      <a href="/checkout" id="atcGo" class="btn" data-cursor>לסל</a>
+      <a href="/checkout.html" id="atcGo" class="btn" data-cursor>לסל</a>
     </div>
   </div>
 </div>
@@ -1018,8 +1018,8 @@ footer ul a:hover{color:var(--yellow)}
   function syncBundle(b){
     var price=parseInt(b.getAttribute('data-price'),10)||0, old=parseInt(b.getAttribute('data-old'),10)||0, qty=parseInt(b.getAttribute('data-qty'),10)||1;
     var rib=b.querySelector('.ribbon');
-    /* רק qty נשלח לצ'קאאוט — המחיר והתיאור נגזרים שם מהקטלוג (אנטי-זיוף) */
-    var url='/checkout?qty='+encodeURIComponent(qty);
+    /* שלח qty ו-price לצ'קאאוט */
+    var url='/checkout.html?qty='+encodeURIComponent(qty)+'&price='+encodeURIComponent(price);
     addCart.textContent='הוספה לסל · ₪'+price;
     addCart.setAttribute('href', url);
     if(atcGo) atcGo.setAttribute('href', url);
