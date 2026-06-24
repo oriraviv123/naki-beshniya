@@ -53,6 +53,23 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
     }
   };
 
+  // ─── ניקוי הטוקן הישן של סאמיט ──────────────────────────────────────
+  // ה-SDK של סאמיט שומר את הטוקן בשדה נסתר (input[name=og-token]) ומדלג על
+  // טוקניזציה מחדש כל עוד יש בו ערך (בקוד שלהם: `0 < l.val().length || Tokenize(...)`).
+  // לכן אחרי כרטיס שגוי, הטוקן הישן "תוקע" — ניסיון חוזר (גם עם כרטיס תקין)
+  // לא מטוקֵן מחדש ולא קורה כלום. מחיקת השדה מאלצת טוקניזציה טרייה.
+  const resetSumitToken = () => {
+    try {
+      const form = document.querySelector("form[data-og='form']");
+      if (!form) return;
+      const tok = form.querySelector("input[name='og-token']");
+      if (tok) tok.value = '';
+      if (window.jQuery) window.jQuery(form).data('og-ignoreevents', '0');
+    } catch {
+      /* no-op */
+    }
+  };
+
   // ביצוע החיוב מול השרת אחרי שסאמיט החזיר טוקן חד-פעמי.
   // שולחים רק qty — המחיר נקבע בצד-השרת (אנטי-זיוף מחיר).
   const chargeRef = useRef(null);
@@ -86,6 +103,7 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
       setErrors([msg]);
       onError?.(msg);
       setLoading(false);
+      resetSumitToken(); // לאפשר ניסיון חוזר עם טוקן טרי
     } finally {
       chargingRef.current = false;
       clearWatchdog();
@@ -132,6 +150,7 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
                 clearWatchdog();
                 setErrors([msg]);
                 setLoading(false);
+                resetSumitToken();
                 liveRef.current.onError?.(msg);
                 return;
               }
@@ -166,6 +185,7 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
       watchdogRef.current = null;
       chargingRef.current = false;
       setLoading(false);
+      resetSumitToken();
       setErrors(['התשלום לא הושלם. בדוק את הפרטים ונסה שוב.']);
     }, 15000);
   };
@@ -174,6 +194,9 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
   // וסאמיט לא החזירה callback) — ברגע שהמשתמש מתקן שדה כלשהו משחררים מיד.
   // לא מפריעים לחיוב אמיתי שכבר בתהליך (chargingRef).
   const handleFormInput = () => {
+    // כל עריכה של הטופס מנקה את הטוקן הישן של סאמיט, כדי שהשליחה הבאה
+    // תיצור טוקן חדש מהפרטים המעודכנים (ולא תידחה/תיתקע על טוקן ישן).
+    resetSumitToken();
     if (loading && !chargingRef.current) {
       clearWatchdog();
       setLoading(false);
