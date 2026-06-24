@@ -39,11 +39,26 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
   const liveRef = useRef({ quantity, shipping, onSuccess, onError, customer });
   liveRef.current = { quantity, shipping, onSuccess, onError, customer };
 
+  // ─── הגנה מפני "תקיעה" במצב טעינה ───────────────────────────────────
+  // סאמיט לא תמיד מחזירה ResponseCallback (למשל כשהוולידציה הפנימית של
+  // פרטי הכרטיס נכשלת) — ואז loading נשאר true והכפתור תקוע עד ריענון.
+  // watchdog מבטיח שחרור, ו-chargingRef מבדיל בין "תקוע לפני חיוב" (בטוח
+  // לשחרר מיד) לבין "חיוב אמיתי בתהליך" (אסור להפריע).
+  const watchdogRef = useRef(null);
+  const chargingRef = useRef(false);
+  const clearWatchdog = () => {
+    if (watchdogRef.current) {
+      clearTimeout(watchdogRef.current);
+      watchdogRef.current = null;
+    }
+  };
+
   // ביצוע החיוב מול השרת אחרי שסאמיט החזיר טוקן חד-פעמי.
   // שולחים רק qty — המחיר נקבע בצד-השרת (אנטי-זיוף מחיר).
   const chargeRef = useRef(null);
   chargeRef.current = async (token) => {
     const { quantity, shipping, onSuccess, onError, customer } = liveRef.current;
+    chargingRef.current = true; // מכאן ועד finally — חיוב אמיתי בתהליך
     try {
       const res = await fetch('/api/sumit/charge', {
         method: 'POST',
@@ -71,6 +86,9 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
       setErrors([msg]);
       onError?.(msg);
       setLoading(false);
+    } finally {
+      chargingRef.current = false;
+      clearWatchdog();
     }
   };
 
@@ -111,6 +129,7 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
                   resp?.UserErrorMessage ||
                   resp?.TechnicalErrorDetails ||
                   'פרטי האשראי לא אומתו. אנא בדוק את הפרטים ונסה שנית.';
+                clearWatchdog();
                 setErrors([msg]);
                 setLoading(false);
                 liveRef.current.onError?.(msg);
@@ -118,6 +137,7 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
               }
               const token = resp.Data?.SingleUseToken;
               if (!token) {
+                clearWatchdog();
                 setErrors(['לא התקבל אישור אשראי. נסה שנית.']);
                 setLoading(false);
                 return;
@@ -130,11 +150,34 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
       });
   }, []);
 
+  // ניקוי ה-watchdog כשהקומפוננטה יורדת מהמסך
+  useEffect(() => () => clearWatchdog(), []);
+
   // לחיצה על "שלם": מנקה שגיאות ומדליק טעינה. הטוקניזציה והחיוב קורים ב-ResponseCallback.
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (loading) return; // מניעת שליחה כפולה בזמן עיבוד
     setErrors([]);
     setLoading(true);
+    // watchdog: אם לא חזרה תשובה סופית תוך 15 שניות — משחררים את הכפתור
+    // ומציגים שגיאה, כדי שלא להישאר תקועים עד ריענון הדף.
+    clearWatchdog();
+    watchdogRef.current = setTimeout(() => {
+      watchdogRef.current = null;
+      chargingRef.current = false;
+      setLoading(false);
+      setErrors(['התשלום לא הושלם. בדוק את הפרטים ונסה שוב.']);
+    }, 15000);
+  };
+
+  // אם נתקענו במצב טעינה *לפני* שלב החיוב בפועל (למשל ולידציית כרטיס נכשלה
+  // וסאמיט לא החזירה callback) — ברגע שהמשתמש מתקן שדה כלשהו משחררים מיד.
+  // לא מפריעים לחיוב אמיתי שכבר בתהליך (chargingRef).
+  const handleFormInput = () => {
+    if (loading && !chargingRef.current) {
+      clearWatchdog();
+      setLoading(false);
+    }
   };
 
   if (success) {
@@ -169,7 +212,7 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
           </div>
         )}
 
-        <form data-og="form" onSubmit={handleSubmit} className="sp-form" dir="rtl">
+        <form data-og="form" onSubmit={handleSubmit} onInput={handleFormInput} className="sp-form" dir="rtl">
           {/* ───── פרטי הלקוח והמשלוח ───── */}
           <div className="sp-section">פרטים אישיים ומשלוח</div>
 
