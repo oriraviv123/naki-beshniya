@@ -27,6 +27,12 @@ const CATALOG = {
   3: { price: 237, name: 'נקי בשנייה — שלישיית כפפות' },
 };
 
+// ─── עלות משלוח (צד-שרת בלבד) ─────────────────────────────────────────
+// הלקוח שולח רק את שם השיטה; הסכום נקבע כאן ולא ניתן לזיוף מהדפדפן.
+//   pickup   = איסוף מנקודת איסוף → חינם
+//   delivery = משלוח עד הבית      → ₪10
+const SHIPPING = { pickup: 0, delivery: 10 };
+
 // ─── הגבלת קצב בסיסית (defense-in-depth) ─────────────────────────────
 // הערה: בענן serverless הזיכרון הוא per-instance. לפרודקשן אמיתי מומלץ
 // Upstash Redis / Vercel WAF. זה חוסם ניצול סקריפטי טריוויאלי.
@@ -84,7 +90,7 @@ export async function POST(request) {
     try { body = await request.json(); } catch {
       return NextResponse.json({ error: 'בקשה לא תקינה' }, { status: 400 });
     }
-    const { token, qty, customer } = body || {};
+    const { token, qty, shipping, customer } = body || {};
 
     // ── 4) ולידציה: טוקן + כמות מתוך הקטלוג בלבד ──
     if (!token || typeof token !== 'string' || token.length > 512) {
@@ -95,8 +101,13 @@ export async function POST(request) {
     if (!product) {
       return NextResponse.json({ error: 'בחירת מוצר לא תקינה' }, { status: 400 });
     }
-    const amount = product.price;         // ← מחיר מהשרת בלבד
+    const productPrice = product.price;   // ← מחיר מהשרת בלבד
     const itemName = product.name;        // ← תיאור מהשרת בלבד
+
+    // אופן משלוח — רק ערך מוכר מתקבל; כל השאר → איסוף עצמי (חינם)
+    const shipMethod = shipping === 'delivery' ? 'delivery' : 'pickup';
+    const shippingCost = SHIPPING[shipMethod];
+    const amount = productPrice + shippingCost;   // ← סכום סופי מהשרת בלבד
 
     // ── 5) משתני סביבה ──
     const companyId = process.env.SUMIT_COMPANY_ID;
@@ -126,7 +137,12 @@ export async function POST(request) {
           ZipCode: clean(c.zip, 20) || null,
           SearchMode: 0,
         },
-        Items: [{ Item: { Name: itemName }, Quantity: 1, UnitPrice: amount }],
+        Items: [
+          { Item: { Name: itemName }, Quantity: 1, UnitPrice: productPrice },
+          ...(shippingCost > 0
+            ? [{ Item: { Name: 'משלוח עד הבית' }, Quantity: 1, UnitPrice: shippingCost }]
+            : []),
+        ],
         SingleUseToken: token,
         VATIncluded: true,
         SendDocumentByEmail: emailValid,
