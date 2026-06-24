@@ -1057,13 +1057,19 @@ footer ul a:hover{color:var(--yellow)}
     });
   });
 
-  /* ---------- sticky ATC ---------- */
-  var atc=document.getElementById('atc'), hero=document.querySelector('.hero'), offer=document.getElementById('offer');
+  /* ---------- sticky ATC + mobile button scroll detection ---------- */
+  var atc=document.getElementById('atc'), hero=document.querySelector('.hero'), offer=document.getElementById('offer'), mobileOrderBtn=document.getElementById('mobileOrderBtn');
+  var lastScrollY = 0;
   function atcState(){
     var past = window.scrollY > (hero?hero.offsetHeight*0.9:600);
     var or = offer.getBoundingClientRect();
     var oVis = or.top < window.innerHeight && or.bottom > 0;
     atc.classList.toggle('show', past && !oVis);
+
+    /* mobile button: show only when scrolling UP */
+    var isScrollingUp = window.scrollY < lastScrollY;
+    if(mobileOrderBtn) mobileOrderBtn.style.display = (isScrollingUp && window.innerWidth <= 680) ? 'block' : 'none';
+    lastScrollY = window.scrollY;
   }
   window.addEventListener('scroll', atcState, {passive:true}); atcState();
 
