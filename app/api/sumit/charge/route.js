@@ -169,11 +169,23 @@ export async function POST(request) {
       return NextResponse.json({ error: userMsg }, { status: 402 });
     }
 
+    // ─── אימות חובה: חייב להיות transaction ID אמיתי ────────────────
+    // בלי זה, הטעות עלולה להעביר בטעות לדף התודה גם בלי חיוב אמיתי.
     const data = sumitData?.Data || {};
+    const transactionId = data?.Payment?.ID || data?.DocumentNumber || data?.DocumentID || null;
+
+    if (!transactionId) {
+      console.error('[sumit/charge] rejected: no transactionId in SUMIT response even though status=0', sumitData);
+      return NextResponse.json(
+        { error: 'לא התקבל מספר אישור מחברת הסליקה. נסה שנית.' },
+        { status: 402 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       amount,
-      transactionId: data?.Payment?.ID || data?.DocumentNumber || data?.DocumentID || null,
+      transactionId,
     });
 
   } catch (err) {

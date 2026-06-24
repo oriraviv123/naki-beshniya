@@ -57,6 +57,13 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
         throw new Error(data.error || 'שגיאה בביצוע החיוב');
       }
 
+      // אימות נוסף: חייב להיות transactionId ו-success flag
+      // בלי אלה, אנחנו לא משוכנעים שהחיוב בוצע באמת
+      if (!data.success || !data.transactionId) {
+        console.error('[PaymentForm] Invalid charge response: missing success flag or transactionId', data);
+        throw new Error('לא התקבל אישור חיוב מהשרת. אנא בדוק את פרטיך ונסה שוב.');
+      }
+
       setSuccess(true);
       onSuccess?.(data.transactionId, data.amount);
     } catch (err) {
