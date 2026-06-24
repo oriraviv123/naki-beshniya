@@ -157,35 +157,57 @@ export async function POST(request) {
       return NextResponse.json({ error: 'שגיאה זמנית בשירות הסליקה. נסה שוב.' }, { status: 502 });
     }
 
-    const ok =
+    // ─────────────────────────────────────────────────────────────────
+    //  אימות קשוח של תוצאת הסליקה — אסור "הצלחה משתמעת".
+    //  שלוש בדיקות *מצטברות*; כשלון של אחת = דחייה והישארות בדף התשלום.
+    // ─────────────────────────────────────────────────────────────────
+    const data = sumitData?.Data || {};
+
+    // (1) Status רשמי של סאמיט חייב להיות הצלחה (0 / "Success").
+    const statusOk =
       sumitData?.Status === 0 ||
       sumitData?.Status === 'Success' ||
       String(sumitData?.Status).startsWith('Success');
 
-    if (!ok) {
-      // מציגים ללקוח רק הודעה ידידותית; פרטים טכניים נשמרים בלוג בלבד.
-      console.error('[sumit/charge] declined:', sumitData?.Status, sumitData?.TechnicalErrorDetails);
-      const userMsg = sumitData?.UserErrorMessage || 'החיוב נכשל. אנא בדוק את פרטי הכרטיס ונסה שנית.';
+    // (2) חייבת להיות רשומת *תשלום* אמיתית (Payment.ID) — לא מספר מסמך!
+    //     זו הייתה התקלה הקודמת: סאמיט מנפיקה DocumentNumber/DocumentID
+    //     גם כשהכרטיס לא אושר בפועל (מסמך לא-משולם). לכן מספר מסמך אינו
+    //     הוכחה לחיוב. רק Payment.ID מעיד על עסקה שאושרה ע"י חברת האשראי.
+    const payment =
+      data?.Payment ||
+      (Array.isArray(data?.Payments) ? data.Payments[0] : null) ||
+      null;
+    const paymentId = payment?.ID ?? data?.PaymentID ?? null;
+
+    // (3) אם סאמיט מחזירה שדה תקפות תשלום — הוא לא יכול להיות false.
+    const paymentValid = payment ? payment.ValidPayment !== false : false;
+
+    const charged = statusOk && Boolean(paymentId) && paymentValid;
+
+    if (!charged) {
+      // לוג מפורט לאבחון (נשאר בשרת בלבד) — חושף את המבנה האמיתי של התשובה.
+      console.error('[sumit/charge] NOT CHARGED — refusing success', JSON.stringify({
+        status: sumitData?.Status,
+        userMsg: sumitData?.UserErrorMessage,
+        technical: sumitData?.TechnicalErrorDetails,
+        statusOk,
+        hasPayment: Boolean(payment),
+        paymentId,
+        validPayment: payment?.ValidPayment,
+        documentId: data?.DocumentID ?? data?.DocumentNumber ?? null,
+        dataKeys: Object.keys(data || {}),
+      }));
+
+      const userMsg =
+        sumitData?.UserErrorMessage ||
+        'העסקה נדחתה על ידי חברת האשראי. אנא בדוק את פרטי הכרטיס ונסה שנית.';
       return NextResponse.json({ error: userMsg }, { status: 402 });
-    }
-
-    // ─── אימות חובה: חייב להיות transaction ID אמיתי ────────────────
-    // בלי זה, הטעות עלולה להעביר בטעות לדף התודה גם בלי חיוב אמיתי.
-    const data = sumitData?.Data || {};
-    const transactionId = data?.Payment?.ID || data?.DocumentNumber || data?.DocumentID || null;
-
-    if (!transactionId) {
-      console.error('[sumit/charge] rejected: no transactionId in SUMIT response even though status=0', sumitData);
-      return NextResponse.json(
-        { error: 'לא התקבל מספר אישור מחברת הסליקה. נסה שנית.' },
-        { status: 402 }
-      );
     }
 
     return NextResponse.json({
       success: true,
       amount,
-      transactionId,
+      transactionId: paymentId,
     });
 
   } catch (err) {
