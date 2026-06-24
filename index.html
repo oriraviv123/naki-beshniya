@@ -467,11 +467,7 @@ footer ul a:hover{color:var(--yellow)}
 .atc-price s{font-size:15px;color:var(--muted);font-weight:400;margin-inline-start:8px}
 .atc .btn{padding:13px 26px;min-height:50px}
 
-/* mobile header order button */
-.mobile-order-btn{display:none;position:fixed;top:110px;right:28px;left:28px;z-index:850;background:var(--yellow);color:#0c0c0e;padding:14px 20px;border-radius:var(--r-pill);font-weight:800;font-size:15px;text-align:center;cursor:pointer;transition:transform var(--d-fast) var(--e-out);box-shadow:0 8px 30px rgba(255,210,59,.28);text-decoration:none}
-.mobile-order-btn:active{transform:scale(.97)}
 @media (max-width:680px){
-  .mobile-order-btn{display:block}
   .atc-l img{display:none}
   .atc-l{gap:8px}
 }
@@ -581,9 +577,6 @@ footer ul a:hover{color:var(--yellow)}
 
 <span id="top"></span>
 
-<!-- mobile order button -->
-<a href="/checkout?qty=1" class="mobile-order-btn" id="mobileOrderBtn" data-cursor>להזמנה · ₪99</a>
-
 <!-- ============ HERO ============ -->
 <section class="hero">
   <div class="hero-bg"><div class="hero-glow" data-parallax="0.12"></div></div>
@@ -644,16 +637,6 @@ footer ul a:hover{color:var(--yellow)}
     <span>ספה נקייה <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg> בגדים נקיים <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg> <span class="muted">לשימוש חוזר</span> <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg> בלי רולר <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg> <span class="muted">בלי רפילים</span> <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg> חוסך כסף <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg> <span class="muted">ידידותי לסביבה</span> <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg> </span>
   </div>
 </div>
-
-<!-- ============ MANIFESTO ============ -->
-<section class="manifesto">
-  <div class="wrap">
-    <div class="lead r-fade">— נשמע מוכר?</div>
-    <p id="manifesto">
-      <span class="hl">רולר נגמר תוך שבוע. שוב קונים חדש, שוב מבזבזים כסף, שוב עובר על עצמך עם הרולר וכלום לא קורה. נקי בשנייה מחליפה אותו לתמיד!</span>
-    </p>
-  </div>
-</section>
 
 <!-- ============ ANATOMY ============ -->
 <section class="anatomy" id="anatomy">
@@ -892,7 +875,7 @@ footer ul a:hover{color:var(--yellow)}
     </div>
     <div class="atc-r">
       <span class="atc-price" id="atcPrice">₪237 <s>₪537</s></span>
-      <a href="/checkout?qty=1" id="atcGo" class="btn" data-cursor>לסל</a>
+      <a href="#offer" id="atcGo" class="btn" data-cursor>לקנייה</a>
     </div>
   </div>
 </div>
@@ -1026,7 +1009,7 @@ footer ul a:hover{color:var(--yellow)}
 
   /* ---------- bundles ---------- */
   var bundles=[].slice.call(document.querySelectorAll('.bundle'));
-  var addCart=document.getElementById('addCart'), atcPrice=document.getElementById('atcPrice'), atcDesc=document.getElementById('atcDesc'), atcGo=document.getElementById('atcGo'), mobileOrderBtn=document.getElementById('mobileOrderBtn');
+  var addCart=document.getElementById('addCart'), atcPrice=document.getElementById('atcPrice'), atcDesc=document.getElementById('atcDesc'), atcGo=document.getElementById('atcGo');
   function syncBundle(b){
     var price=parseInt(b.getAttribute('data-price'),10)||0, old=parseInt(b.getAttribute('data-old'),10)||0, qty=parseInt(b.getAttribute('data-qty'),10)||1;
     var rib=b.querySelector('.ribbon');
@@ -1034,8 +1017,7 @@ footer ul a:hover{color:var(--yellow)}
     var url='/checkout?qty='+encodeURIComponent(qty);
     addCart.textContent='הוספה לסל · ₪'+price;
     addCart.setAttribute('href', url);
-    if(atcGo) atcGo.setAttribute('href', url);
-    if(mobileOrderBtn) { mobileOrderBtn.setAttribute('href', url); mobileOrderBtn.textContent='להזמנה · ₪'+price; }
+    /* כפתור הסרגל התחתון מוביל לבחירת החבילות (#offer), לא ישירות לצ'קאאוט */
     /* price/old מאולצים למספרים שלמים — אין דרך להזריק HTML דרך innerHTML */
     atcPrice.innerHTML='₪'+price+' <s>₪'+old+'</s>';
     var title=b.querySelector('h3').textContent.trim();
@@ -1057,19 +1039,13 @@ footer ul a:hover{color:var(--yellow)}
     });
   });
 
-  /* ---------- sticky ATC + mobile button scroll detection ---------- */
-  var atc=document.getElementById('atc'), hero=document.querySelector('.hero'), offer=document.getElementById('offer'), mobileOrderBtn=document.getElementById('mobileOrderBtn');
-  var lastScrollY = 0;
+  /* ---------- sticky ATC ---------- */
+  var atc=document.getElementById('atc'), hero=document.querySelector('.hero'), offer=document.getElementById('offer');
   function atcState(){
     var past = window.scrollY > (hero?hero.offsetHeight*0.9:600);
     var or = offer.getBoundingClientRect();
     var oVis = or.top < window.innerHeight && or.bottom > 0;
     atc.classList.toggle('show', past && !oVis);
-
-    /* mobile button: show only when scrolling UP */
-    var isScrollingUp = window.scrollY < lastScrollY;
-    if(mobileOrderBtn) mobileOrderBtn.style.display = (isScrollingUp && window.innerWidth <= 680) ? 'block' : 'none';
-    lastScrollY = window.scrollY;
   }
   window.addEventListener('scroll', atcState, {passive:true}); atcState();
 
