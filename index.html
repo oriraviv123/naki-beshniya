@@ -467,6 +467,15 @@ footer ul a:hover{color:var(--yellow)}
 .atc-price s{font-size:15px;color:var(--muted);font-weight:400;margin-inline-start:8px}
 .atc .btn{padding:13px 26px;min-height:50px}
 
+/* mobile header order button */
+.mobile-order-btn{display:none;position:fixed;top:110px;right:28px;left:28px;z-index:850;background:var(--yellow);color:#0c0c0e;padding:14px 20px;border-radius:var(--r-pill);font-weight:800;font-size:15px;text-align:center;cursor:pointer;transition:transform var(--d-fast) var(--e-out);box-shadow:0 8px 30px rgba(255,210,59,.28);text-decoration:none}
+.mobile-order-btn:active{transform:scale(.97)}
+@media (max-width:680px){
+  .mobile-order-btn{display:block}
+  .atc-l img{display:none}
+  .atc-l{gap:8px}
+}
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */
@@ -571,6 +580,9 @@ footer ul a:hover{color:var(--yellow)}
 </div>
 
 <span id="top"></span>
+
+<!-- mobile order button -->
+<a href="/checkout.html?qty=3" class="mobile-order-btn" id="mobileOrderBtn" data-cursor>להזמנה · ₪237</a>
 
 <!-- ============ HERO ============ -->
 <section class="hero">
@@ -1014,7 +1026,7 @@ footer ul a:hover{color:var(--yellow)}
 
   /* ---------- bundles ---------- */
   var bundles=[].slice.call(document.querySelectorAll('.bundle'));
-  var addCart=document.getElementById('addCart'), atcPrice=document.getElementById('atcPrice'), atcDesc=document.getElementById('atcDesc'), atcGo=document.getElementById('atcGo');
+  var addCart=document.getElementById('addCart'), atcPrice=document.getElementById('atcPrice'), atcDesc=document.getElementById('atcDesc'), atcGo=document.getElementById('atcGo'), mobileOrderBtn=document.getElementById('mobileOrderBtn');
   function syncBundle(b){
     var price=parseInt(b.getAttribute('data-price'),10)||0, old=parseInt(b.getAttribute('data-old'),10)||0, qty=parseInt(b.getAttribute('data-qty'),10)||1;
     var rib=b.querySelector('.ribbon');
@@ -1023,6 +1035,7 @@ footer ul a:hover{color:var(--yellow)}
     addCart.textContent='הוספה לסל · ₪'+price;
     addCart.setAttribute('href', url);
     if(atcGo) atcGo.setAttribute('href', url);
+    if(mobileOrderBtn) { mobileOrderBtn.setAttribute('href', url); mobileOrderBtn.textContent='להזמנה · ₪'+price; }
     /* price/old מאולצים למספרים שלמים — אין דרך להזריק HTML דרך innerHTML */
     atcPrice.innerHTML='₪'+price+' <s>₪'+old+'</s>';
     var title=b.querySelector('h3').textContent.trim();
