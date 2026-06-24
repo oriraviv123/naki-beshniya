@@ -3,18 +3,23 @@
 // CSP מותאם בדיוק לצד-שלישי שבו האתר משתמש:
 //   jQuery (code.jquery.com), SUMIT SDK (app.sumit.co.il),
 //   טוקניזציה (api/*.sumit.co.il), פונטים של גוגל.
+// בפיתוח (next dev) ריאקט זקוק ל-'unsafe-eval' ול-WebSocket עבור Hot Reload/hydration,
+// אחרת הדף לא הופך אינטראקטיבי (כפתורים/בחירה לא מגיבים) ב-localhost.
+// בפרודקשן ה-CSP נשאר מחמיר — בלי eval, עם upgrade-insecure-requests.
+const isDev = process.env.NODE_ENV !== 'production';
+
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://code.jquery.com https://app.sumit.co.il",
+  `script-src 'self' 'unsafe-inline' https://code.jquery.com https://app.sumit.co.il${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: blob:",
-  "connect-src 'self' https://api.sumit.co.il https://app.sumit.co.il https://*.sumit.co.il",
+  `connect-src 'self' https://api.sumit.co.il https://app.sumit.co.il https://*.sumit.co.il${isDev ? ' ws: wss:' : ''}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "object-src 'none'",
-  "upgrade-insecure-requests",
+  ...(isDev ? [] : ['upgrade-insecure-requests']),
 ].join('; ');
 
 const securityHeaders = [
