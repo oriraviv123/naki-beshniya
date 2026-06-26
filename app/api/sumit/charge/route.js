@@ -4,8 +4,8 @@
  * מבצע חיוב מול SUMIT באמצעות טוקן חד-פעמי (SingleUseToken) שמגיע מהטופס.
  *
  * משתני סביבה נדרשים (Vercel / .env.local):
- *   SUMIT_COMPANY_ID=...     ← מזהה החברה בסאמיט
- *   SUMIT_API_KEY=...        ← מפתח API פרטי (לא Public!)
+ *   SUMIT_PUBLIC_KEY=...     ← מפתח Public
+ *   SUMIT_PRIVATE_KEY=...    ← מפתח Private (לא Public!)
  *
  * אבטחה:
  *   • המחיר נקבע בצד-השרת בלבד (CATALOG) — הלקוח לא יכול לקבוע סכום.
@@ -109,10 +109,10 @@ export async function POST(request) {
     const amount = productPrice + shippingCost;   // ← סכום סופי מהשרת בלבד
 
     // ── 5) משתני סביבה ──
-    const companyId = process.env.SUMIT_COMPANY_ID;
-    const apiKey    = process.env.SUMIT_API_KEY;
-    if (!companyId || !apiKey) {
-      console.error('Missing env: SUMIT_COMPANY_ID / SUMIT_API_KEY');
+    const publicKey = process.env.SUMIT_PUBLIC_KEY;
+    const privateKey = process.env.SUMIT_PRIVATE_KEY;
+    if (!publicKey || !privateKey) {
+      console.error('Missing env: SUMIT_PUBLIC_KEY / SUMIT_PRIVATE_KEY');
       return NextResponse.json({ error: 'תצורת שרת שגויה' }, { status: 500 });
     }
 
@@ -126,7 +126,7 @@ export async function POST(request) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Content-Language': 'he' },
       body: JSON.stringify({
-        Credentials: { CompanyID: Number(companyId), APIKey: apiKey },
+        Credentials: { CompanyID: Number(publicKey), APIKey: privateKey },
         Customer: {
           Name: clean(c.fullName, 120) || 'לקוח נקי בשנייה',
           EmailAddress: emailValid ? customerEmail : null,
