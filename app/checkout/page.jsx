@@ -20,13 +20,9 @@ const CATALOG = {
 };
 const DEFAULT = { qty: 1, ...CATALOG[1] };
 
-// עלות משלוח — חייב להיות זהה לצד-השרת (route.js). ברירת מחדל: איסוף עצמי (חינם).
-const SHIPPING = { pickup: 0, delivery: 10 };
-
 export default function CheckoutPage() {
   const [order, setOrder] = useState(DEFAULT);
   const [ready, setReady] = useState(false);
-  const [shipping, setShipping] = useState('pickup'); // ברירת מחדל: נקודת איסוף (חינם)
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -48,8 +44,7 @@ export default function CheckoutPage() {
 
   const fmt = (n) => '₪' + Number(n).toLocaleString('he-IL');
   const savings = order.old && order.old > order.price ? order.old - order.price : 0;
-  const shippingCost = SHIPPING[shipping] || 0;
-  const total = order.price + shippingCost;
+  const total = order.price; // משלוח חינם עד הבית לכולם
 
   return (
     <main className="co">
@@ -88,41 +83,14 @@ export default function CheckoutPage() {
             <div className="co-item-price">{fmt(order.price)}</div>
           </div>
 
-          {/* ───── בחירת אופן משלוח ───── */}
-          <div className="co-ship">
-            <div className="co-ship-title">אופן קבלת ההזמנה</div>
-
-            <label className={'co-ship-opt' + (shipping === 'pickup' ? ' is-active' : '')}>
-              <input
-                type="radio"
-                name="shipping"
-                value="pickup"
-                checked={shipping === 'pickup'}
-                onChange={() => setShipping('pickup')}
-              />
-              <span className="co-ship-radio" aria-hidden="true" />
-              <span className="co-ship-txt">
-                <b>איסוף מנקודת איסוף</b>
-                <small>איסוף מנקודת האיסוף הקרובה אליכם</small>
-              </span>
-              <span className="co-ship-price co-free">חינם</span>
-            </label>
-
-            <label className={'co-ship-opt' + (shipping === 'delivery' ? ' is-active' : '')}>
-              <input
-                type="radio"
-                name="shipping"
-                value="delivery"
-                checked={shipping === 'delivery'}
-                onChange={() => setShipping('delivery')}
-              />
-              <span className="co-ship-radio" aria-hidden="true" />
-              <span className="co-ship-txt">
-                <b>משלוח עד הבית</b>
-                <small>משלוח עד לכתובת שלכם</small>
-              </span>
-              <span className="co-ship-price">+{fmt(SHIPPING.delivery)}</span>
-            </label>
+          {/* ───── משלוח חינם עד הבית לכולם ───── */}
+          <div className="co-ship-free">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7" /><circle cx="6.5" cy="17.5" r="1.8" /><circle cx="17.5" cy="17.5" r="1.8" /></svg>
+            <span className="co-ship-free-txt">
+              <b>משלוח חינם עד הבית</b>
+              <small>המשלוח עד דלת הבית — לכולם, ללא תוספת תשלום</small>
+            </span>
+            <span className="co-free">חינם</span>
           </div>
 
           <div className="co-lines">
@@ -131,10 +99,8 @@ export default function CheckoutPage() {
               <div className="co-line co-line--save"><span>הנחת מבצע ההשקה</span><span>−{fmt(savings)}</span></div>
             )}
             <div className="co-line">
-              <span>משלוח</span>
-              {shippingCost > 0
-                ? <span>+{fmt(shippingCost)}</span>
-                : <span className="co-free">חינם</span>}
+              <span>משלוח עד הבית</span>
+              <span className="co-free">חינם</span>
             </div>
           </div>
 
@@ -164,7 +130,7 @@ export default function CheckoutPage() {
           <SumitPaymentForm
             amount={total}
             quantity={order.qty}
-            shipping={shipping}
+            shipping="delivery"
             description={order.desc}
             onSuccess={handleSuccess}
             onError={(msg) => console.error('שגיאת תשלום:', msg)}
@@ -218,30 +184,15 @@ const css = `
   .co-item-txt small { color: var(--muted); font-size: 13.5px; }
   .co-item-price { font-size: 18px; font-weight: 900; font-family: 'Frank Ruhl Libre', Georgia, serif; }
 
-  .co-ship { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
-  .co-ship-title { font-size: 13.5px; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
-  .co-ship-opt {
-    display: flex; align-items: center; gap: 12px;
-    background: #141416; border: 1.5px solid var(--line);
-    border-radius: 14px; padding: 14px 16px; cursor: pointer;
-    transition: border-color .18s, background .18s;
+  .co-ship-free {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+    background: rgba(255,210,59,.06); border: 1.5px solid var(--yellow);
+    border-radius: 14px; padding: 14px 16px;
   }
-  .co-ship-opt:hover { border-color: rgba(255,210,59,.5); }
-  .co-ship-opt.is-active { border-color: var(--yellow); background: rgba(255,210,59,.06); }
-  .co-ship-opt input { position: absolute; opacity: 0; pointer-events: none; }
-  .co-ship-radio {
-    flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%;
-    border: 2px solid var(--line); display: grid; place-items: center;
-    transition: border-color .18s;
-  }
-  .co-ship-opt.is-active .co-ship-radio { border-color: var(--yellow); }
-  .co-ship-opt.is-active .co-ship-radio::after {
-    content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--yellow);
-  }
-  .co-ship-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .co-ship-txt b { font-size: 15px; font-weight: 800; }
-  .co-ship-txt small { color: var(--muted); font-size: 13px; }
-  .co-ship-price { font-size: 15px; font-weight: 800; flex: 0 0 auto; }
+  .co-ship-free > svg { flex: 0 0 auto; width: 24px; height: 24px; color: var(--yellow); }
+  .co-ship-free-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .co-ship-free-txt b { font-size: 15px; font-weight: 800; }
+  .co-ship-free-txt small { color: var(--muted); font-size: 13px; }
 
   .co-lines { display: flex; flex-direction: column; gap: 10px; padding: 4px 2px 18px; }
   .co-line { display: flex; justify-content: space-between; font-size: 15px; color: var(--muted); }
