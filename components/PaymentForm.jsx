@@ -11,10 +11,10 @@ import { useEffect, useRef, useState } from 'react';
  *   onSuccess    {fn}      - callback(transactionId) בהצלחה
  *   onError      {fn}      - callback(errorMessage) בכישלון
  *
- * הגדרות סביבה נדרשות ב-.env.local:
- *   NEXT_PUBLIC_SUMIT_COMPANY_ID=...
- *   NEXT_PUBLIC_SUMIT_API_PUBLIC_KEY=...
- *   SUMIT_API_KEY=...          (מפתח פרטי – בצד שרת בלבד)
+ * הגדרות סביבה נדרשות (Vercel / .env.local):
+ *   NEXT_PUBLIC_COMPANY_ID=...        ← מזהה החברה (חשוף לדפדפן – לא סודי)
+ *   NEXT_PUBLIC_SUMIT_PUBLIC_KEY=...  ← מפתח Public (חשוף לדפדפן – לא סודי)
+ *   SUMIT_PRIVATE_KEY=...             ← מפתח Private (בצד שרת בלבד!)
  */
 
 export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pickup', description = '', onSuccess, onError }) {
@@ -137,8 +137,8 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
       .then(() => {
         window.jQuery(function () {
           window.OfficeGuy.Payments.BindFormSubmit({
-            CompanyID: process.env.NEXT_PUBLIC_SUMIT_COMPANY_ID,
-            APIPublicKey: process.env.NEXT_PUBLIC_SUMIT_API_PUBLIC_KEY,
+            CompanyID: process.env.NEXT_PUBLIC_COMPANY_ID,
+            APIPublicKey: process.env.NEXT_PUBLIC_SUMIT_PUBLIC_KEY,
             ResponseLanguage: 'he',
             // עם ResponseCallback סאמיט לא מבצע submit נייטיב — הוא מעביר לנו את התגובה.
             ResponseCallback: function (resp) {
