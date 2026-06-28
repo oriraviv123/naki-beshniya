@@ -10,7 +10,7 @@
  *   עובדת עם השמות הקיימים וללא צורך ב-rebuild בכל שינוי ערך.
  *
  * משתני סביבה נדרשים (Vercel / .env.local):
- *   COMPANY_ID=...        ← מזהה החברה (לא סודי)
+ *   SUMIT_COMPANY_ID=...  ← מזהה החברה (לא סודי)
  *   SUMIT_PUBLIC_KEY=...  ← מפתח Public לטוקניזציה (לא סודי)
  *
  * הערה: SUMIT_PRIVATE_KEY נשאר בצד-שרת בלבד ולעולם לא מוחזר מכאן.
@@ -22,11 +22,11 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const companyId = process.env.COMPANY_ID || '';
+  const companyId = process.env.SUMIT_COMPANY_ID || '';
   const publicKey = process.env.SUMIT_PUBLIC_KEY || '';
 
   if (!companyId || !publicKey) {
-    console.error('Missing env: COMPANY_ID / SUMIT_PUBLIC_KEY');
+    console.error('Missing env: SUMIT_COMPANY_ID / SUMIT_PUBLIC_KEY');
     return NextResponse.json(
       { error: 'תצורת סליקה חסרה' },
       { status: 500 },

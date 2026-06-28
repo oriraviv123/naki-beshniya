@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from 'react';
  *   onError      {fn}      - callback(errorMessage) בכישלון
  *
  * הגדרות סביבה נדרשות (Vercel / .env.local):
- *   COMPANY_ID=...         ← מזהה החברה (לא סודי)
+ *   SUMIT_COMPANY_ID=...   ← מזהה החברה (לא סודי)
  *   SUMIT_PUBLIC_KEY=...   ← מפתח Public לטוקניזציה (לא סודי)
  *   SUMIT_PRIVATE_KEY=...  ← מפתח Private (בצד שרת בלבד!)
  *
