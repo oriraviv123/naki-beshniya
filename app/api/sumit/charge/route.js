@@ -4,8 +4,8 @@
  * מבצע חיוב מול SUMIT באמצעות טוקן חד-פעמי (SingleUseToken) שמגיע מהטופס.
  *
  * משתני סביבה נדרשים (Vercel / .env.local):
- *   NEXT_PUBLIC_COMPANY_ID=...   ← מזהה החברה (משותף עם הדפדפן)
- *   SUMIT_PRIVATE_KEY=...        ← מפתח Private (סודי – צד שרת בלבד)
+ *   COMPANY_ID=...          ← מזהה החברה
+ *   SUMIT_PRIVATE_KEY=...   ← מפתח Private (סודי – צד שרת בלבד)
  *
  * אבטחה:
  *   • המחיר נקבע בצד-השרת בלבד (CATALOG) — הלקוח לא יכול לקבוע סכום.
@@ -109,10 +109,10 @@ export async function POST(request) {
     const amount = productPrice + shippingCost;   // ← סכום סופי מהשרת בלבד
 
     // ── 5) משתני סביבה ──
-    const companyId = process.env.NEXT_PUBLIC_COMPANY_ID;
+    const companyId = process.env.COMPANY_ID;
     const privateKey = process.env.SUMIT_PRIVATE_KEY;
     if (!companyId || !privateKey) {
-      console.error('Missing env: NEXT_PUBLIC_COMPANY_ID / SUMIT_PRIVATE_KEY');
+      console.error('Missing env: COMPANY_ID / SUMIT_PRIVATE_KEY');
       return NextResponse.json({ error: 'תצורת שרת שגויה' }, { status: 500 });
     }
 

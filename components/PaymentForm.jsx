@@ -12,9 +12,13 @@ import { useEffect, useRef, useState } from 'react';
  *   onError      {fn}      - callback(errorMessage) בכישלון
  *
  * הגדרות סביבה נדרשות (Vercel / .env.local):
- *   NEXT_PUBLIC_COMPANY_ID=...        ← מזהה החברה (חשוף לדפדפן – לא סודי)
- *   NEXT_PUBLIC_SUMIT_PUBLIC_KEY=...  ← מפתח Public (חשוף לדפדפן – לא סודי)
- *   SUMIT_PRIVATE_KEY=...             ← מפתח Private (בצד שרת בלבד!)
+ *   COMPANY_ID=...         ← מזהה החברה (לא סודי)
+ *   SUMIT_PUBLIC_KEY=...   ← מפתח Public לטוקניזציה (לא סודי)
+ *   SUMIT_PRIVATE_KEY=...  ← מפתח Private (בצד שרת בלבד!)
+ *
+ * הקרדנציאלס הציבוריים (CompanyID + PublicKey) נשלפים בעת הטעינה מ-
+ * /api/sumit/config, כי המשתנים אינם בקידומת NEXT_PUBLIC_ ולכן לא
+ * נחשפים לדפדפן ישירות.
  */
 
 export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pickup', description = '', onSuccess, onError }) {
@@ -132,13 +136,25 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
         document.head.appendChild(s);
       });
 
-    loadJQuery()
+    // שליפת הקרדנציאלס הציבוריים מהשרת (COMPANY_ID / SUMIT_PUBLIC_KEY)
+    const loadConfig = () =>
+      fetch('/api/sumit/config')
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error('config'))))
+        .then((cfg) => {
+          if (!cfg?.companyId || !cfg?.publicKey) throw new Error('config');
+          return cfg;
+        });
+
+    let cfgData = null;
+    loadConfig()
+      .then((cfg) => { cfgData = cfg; })
+      .then(loadJQuery)
       .then(loadSumit)
       .then(() => {
         window.jQuery(function () {
           window.OfficeGuy.Payments.BindFormSubmit({
-            CompanyID: process.env.NEXT_PUBLIC_COMPANY_ID,
-            APIPublicKey: process.env.NEXT_PUBLIC_SUMIT_PUBLIC_KEY,
+            CompanyID: cfgData.companyId,
+            APIPublicKey: cfgData.publicKey,
             ResponseLanguage: 'he',
             // עם ResponseCallback סאמיט לא מבצע submit נייטיב — הוא מעביר לנו את התגובה.
             ResponseCallback: function (resp) {
@@ -166,6 +182,9 @@ export default function SumitPaymentForm({ amount, quantity = 1, shipping = 'pic
           });
         });
         setSdkReady(true);
+      })
+      .catch(() => {
+        setErrors(['שירות הסליקה אינו זמין כרגע. נסה שוב מאוחר יותר.']);
       });
   }, []);
 
