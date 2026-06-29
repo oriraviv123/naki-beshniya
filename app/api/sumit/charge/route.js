@@ -2,8 +2,9 @@
  * /app/api/sumit/charge/route.js  (Next.js App Router)
  *
  * מבצע חיוב מול SUMIT באמצעות טוקן חד-פעמי (SingleUseToken) שמגיע מהטופס.
- * משתמש ב-endpoint הרשמי /creditcardpayments/charge/ (חיוב כרטיס ישיר),
- * בהתאם לתדריך החיבור של סאמיט.
+ * משתמש ב-endpoint התקין /billing/payments/charge/ (קרדנציאלס בגוף הבקשה).
+ * הערה: ה-endpoint הישן /creditcardpayments/charge/?id=&key= מיושן ומחזיר
+ * 302 redirect במקום JSON — אין להשתמש בו.
  *
  * משתני סביבה נדרשים (Vercel / .env.local):
  *   SUMIT_COMPANY_ID=...    ← מזהה החברה
@@ -138,22 +139,36 @@ export async function POST(request) {
     const customerEmail = clean(c.email, 160);
     const emailValid = EMAIL_RE.test(customerEmail);
 
-    // ── 7) קריאה ל-SUMIT Charge API (endpoint רשמי לחיוב כרטיס) ──
-    // תיעוד: https://app.sumit.co.il/developers/api/
-    const sumitRes = await fetch(
-      `${SUMIT_API_BASE}/creditcardpayments/charge/?id=${encodeURIComponent(companyId)}&key=${encodeURIComponent(privateKey)}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Content-Language': 'he' },
-        body: JSON.stringify({
-          SingleUseToken: token,
-          Amount: amount,
-          Description: itemName,
-          CustomerName: customerName,
-          ...(emailValid ? { CustomerEmail: customerEmail } : {}),
-        }),
-      }
-    );
+    // ── 7) קריאה ל-SUMIT Charge API ──
+    // ה-endpoint הנכון של SUMIT הוא /billing/payments/charge/ עם הקרדנציאלס
+    // בגוף הבקשה. ה-endpoint הישן /creditcardpayments/charge/?id=&key= מיושן
+    // ומחזיר 302 redirect (לא JSON) — אסור להשתמש בו.
+    const sumitRes = await fetch(`${SUMIT_API_BASE}/billing/payments/charge/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Language': 'he' },
+      body: JSON.stringify({
+        Credentials: { CompanyID: Number(companyId), APIKey: privateKey },
+        Customer: {
+          Name: customerName,
+          EmailAddress: emailValid ? customerEmail : null,
+          Phone: clean(c.phone, 40) || null,
+          Address: clean(c.address, 160) || null,
+          City: clean(c.city, 80) || null,
+          ZipCode: clean(c.zip, 20) || null,
+          SearchMode: 0,
+        },
+        Items: [
+          { Item: { Name: itemName }, Quantity: 1, UnitPrice: productPrice },
+          ...(shippingCost > 0
+            ? [{ Item: { Name: 'משלוח עד הבית' }, Quantity: 1, UnitPrice: shippingCost }]
+            : []),
+        ],
+        SingleUseToken: token,
+        VATIncluded: true,
+        SendDocumentByEmail: emailValid,
+        SendCopyToOrganization: true,
+      }),
+    });
 
     const raw = await sumitRes.text();
     let sumitData;
@@ -164,8 +179,9 @@ export async function POST(request) {
 
     // ─────────────────────────────────────────────────────────────────
     //  אימות קשוח של תוצאת הסליקה — אסור "הצלחה משתמעת".
-    //  שתי בדיקות *מצטברות*: Status רשמי + מזהה עסקה אמיתי.
+    //  שלוש בדיקות *מצטברות*; כשלון של אחת = דחייה והישארות בדף התשלום.
     // ─────────────────────────────────────────────────────────────────
+    const data = sumitData?.Data || {};
 
     // (1) Status רשמי של סאמיט חייב להיות הצלחה (0 / "Success").
     const statusOk =
@@ -173,18 +189,20 @@ export async function POST(request) {
       sumitData?.Status === 'Success' ||
       String(sumitData?.Status).startsWith('Success');
 
-    // (2) חייב להיות מזהה עסקה אמיתי. אצל endpoint זה המזהה חוזר ב-
-    //     ReturnValue / TransactionID (ובמבני תשובה מסוימים תחת Data).
-    const data = sumitData?.Data || {};
-    const transactionId =
-      sumitData?.ReturnValue ??
-      sumitData?.TransactionID ??
-      data?.ReturnValue ??
-      data?.TransactionID ??
-      data?.Payment?.ID ??
+    // (2) חייבת להיות רשומת *תשלום* אמיתית (Payment.ID) — לא מספר מסמך!
+    //     סאמיט מנפיקה DocumentNumber/DocumentID גם כשהכרטיס לא אושר בפועל
+    //     (מסמך לא-משולם). לכן מספר מסמך אינו הוכחה לחיוב. רק Payment.ID
+    //     מעיד על עסקה שאושרה ע"י חברת האשראי.
+    const payment =
+      data?.Payment ||
+      (Array.isArray(data?.Payments) ? data.Payments[0] : null) ||
       null;
+    const transactionId = payment?.ID ?? data?.PaymentID ?? null;
 
-    const charged = statusOk && Boolean(transactionId);
+    // (3) אם סאמיט מחזירה שדה תקפות תשלום — הוא לא יכול להיות false.
+    const paymentValid = payment ? payment.ValidPayment !== false : false;
+
+    const charged = statusOk && Boolean(transactionId) && paymentValid;
 
     if (!charged) {
       // לוג מפורט לאבחון (נשאר בשרת בלבד) — חושף את המבנה האמיתי של התשובה.
@@ -192,16 +210,17 @@ export async function POST(request) {
         httpStatus: sumitRes.status,
         status: sumitData?.Status,
         userMsg: sumitData?.UserErrorMessage,
-        technical: sumitData?.TechnicalErrorDetails || sumitData?.ErrorMessage,
+        technical: sumitData?.TechnicalErrorDetails,
         statusOk,
+        hasPayment: Boolean(payment),
         transactionId,
-        keys: Object.keys(sumitData || {}),
+        validPayment: payment?.ValidPayment,
+        documentId: data?.DocumentID ?? data?.DocumentNumber ?? null,
         dataKeys: Object.keys(data || {}),
       }));
 
       const userMsg =
         sumitData?.UserErrorMessage ||
-        sumitData?.ErrorMessage ||
         'העסקה נדחתה על ידי חברת האשראי. אנא בדוק את פרטי הכרטיס ונסה שנית.';
       return NextResponse.json({ error: userMsg }, { status: 402 });
     }
