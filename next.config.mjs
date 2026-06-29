@@ -10,11 +10,11 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' https://code.jquery.com https://app.sumit.co.il${isDev ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline' https://code.jquery.com https://app.sumit.co.il https://connect.facebook.net${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
-  "img-src 'self' data: blob:",
-  `connect-src 'self' https://api.sumit.co.il https://app.sumit.co.il https://*.sumit.co.il${isDev ? ' ws: wss:' : ''}`,
+  "img-src 'self' data: blob: https://www.facebook.com",
+  `connect-src 'self' https://api.sumit.co.il https://app.sumit.co.il https://*.sumit.co.il https://www.facebook.com https://connect.facebook.net${isDev ? ' ws: wss:' : ''}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
