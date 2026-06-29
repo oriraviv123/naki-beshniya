@@ -32,6 +32,16 @@ export default function CheckoutPage() {
     const { price, old, desc } = item || CATALOG[1];
     setOrder({ qty, price, old, desc });
     setReady(true);
+
+    // Meta Pixel — אירוע מעבר לדף תשלום (פעם אחת בטעינת הדף)
+    if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
+      window.fbq('track', 'InitiateCheckout', {
+        value: price,
+        currency: 'ILS',
+        num_items: qty,
+        content_name: desc,
+      });
+    }
   }, []);
 
   const handleSuccess = (transactionId, chargedAmount) => {
