@@ -56,6 +56,15 @@ function clean(v, max = 120) {
 }
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// מחזיר את הערך הראשון הלא-ריק מבין שמות המשתנים שניתנו (סבלני לשמות ישנים/חדשים)
+function pickEnv(...names) {
+  for (const n of names) {
+    const v = process.env[n];
+    if (v && v.trim()) return v.trim();
+  }
+  return '';
+}
+
 export async function POST(request) {
   try {
     // ── 1) אנטי-CSRF: דרוש Origin תואם לדומיין עצמו ──
@@ -108,11 +117,18 @@ export async function POST(request) {
     const shippingCost = SHIPPING[shipMethod];
     const amount = productPrice + shippingCost;   // ← סכום סופי מהשרת בלבד
 
-    // ── 5) משתני סביבה ──
-    const companyId = process.env.SUMIT_COMPANY_ID;
-    const privateKey = process.env.SUMIT_PRIVATE_KEY;
+    // ── 5) משתני סביבה (סבלני לשמות ישנים/חדשים) ──
+    const companyId = pickEnv(
+      'SUMIT_COMPANY_ID',
+      'COMPANY_ID',
+      'NEXT_PUBLIC_SUMIT_COMPANY_ID',
+      'NEXT_PUBLIC_COMPANY_ID',
+    );
+    const privateKey = pickEnv('SUMIT_PRIVATE_KEY', 'SUMIT_API_KEY');
     if (!companyId || !privateKey) {
-      console.error('Missing env: SUMIT_COMPANY_ID / SUMIT_PRIVATE_KEY');
+      const present = Object.keys(process.env)
+        .filter((k) => /SUMIT|COMPANY/i.test(k)).sort();
+      console.error('[sumit/charge] Missing credentials. Present SUMIT/COMPANY keys:', present);
       return NextResponse.json({ error: 'תצורת שרת שגויה' }, { status: 500 });
     }
 
