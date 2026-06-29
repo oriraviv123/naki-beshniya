@@ -6,9 +6,10 @@ node_modules/
 .next/
 out/
 
-# סודות — לעולם לא ל-git
-.env.local
-.env*.local
+# סודות — לעולם לא ל-git (כל וריאציות .env פרט לדוגמה)
+.env
+.env.*
+!.env.example
 
 # קבצים סטטיים שנוצרים אוטומטית בבנייה (מקור האמת: index.html + assets/ בשורש)
 /public/index.html
