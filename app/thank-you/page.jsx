@@ -7,7 +7,24 @@ export default function ThankYouPage() {
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
-    setInfo({ tx: p.get('tx') || '', amount: p.get('amount') || '' });
+    const tx = p.get('tx') || '';
+    const amount = p.get('amount') || '';
+    setInfo({ tx, amount });
+
+    // Meta Pixel — אירוע רכישה (Purchase).
+    // הגנות: רק אם יש מספר עסקה (tx) אמיתי, ורק פעם אחת לכל עסקה
+    // (sessionStorage) כדי שרענון הדף לא יספור רכישה כפולה.
+    if (tx && typeof window !== 'undefined' && typeof window.fbq === 'function') {
+      const key = `fb_purchase_${tx}`;
+      if (!sessionStorage.getItem(key)) {
+        window.fbq('track', 'Purchase', {
+          value: Number(amount) || 0,
+          currency: 'ILS',
+          transaction_id: tx,
+        });
+        sessionStorage.setItem(key, '1');
+      }
+    }
   }, []);
 
   return (
